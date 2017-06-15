@@ -180,7 +180,9 @@ Here's a code snippet showing how your application can authenticate as a service
     }
 
 # Setting up and using Data Lake SDKs
-Once your have followed one of the approaches for authentication, you're ready to set up your ADLA .NET SDK client objects, which you'll use to perform various actions with the service. You can then perform actions using the clients, like so:
+Once your have followed one of the approaches for authentication, you're ready to set up your ADLA .NET SDK client objects, which you'll use to perform various actions with the service. Remember to use the right tokens/credentials with the right clients: use the ADL credentials for data plane operations, and use the ARM credentials for resource- and account-related operations.
+
+You can then perform actions using the clients, like so:
 
     static void Main(string[] args)
     {
