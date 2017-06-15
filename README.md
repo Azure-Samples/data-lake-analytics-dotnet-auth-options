@@ -29,12 +29,14 @@ You will need some or all of the following namespaces included at the top of you
     using Microsoft.Azure.Management.DataLake.Store.Models;
     using Microsoft.IdentityModel.Clients.ActiveDirectory;
 
-## Azure Active Directory tokens
+## Understanding Azure Active Directory tokens
 When your application authenticates against AAD using any of these methods, tokens are received from AAD that are used for each request to Azure Data Lake Analytics. The token represents the user or the application, depending on the method, and is used to validate that the request is authorized to perform the desired action.
 
 When authenticating, you'll specify a token audience, which specifies the API endpoint for which the token should be valid. For resource- or account-related operations, you'll use the Azure Resource Manager (ARM) token audience ``https://management.core.windows.net/``. For all Data Lake data plane operations, such as job submission, catalog exploration, or file access, you'll use the ADL token audience ``https://datalake.azure.net/``.
 
-## Interactive - User popup
+## Authenticating against Azure Active Directory
+
+### Interactive - User popup
 Use this option if you want to have a browser popup appear when the user signs in to your application, showing an AAD login form. From this interactive popup, your application will receive the tokens necessary to use the Data Lake Analytics .NET SDK on behalf of the user.
 
 The user will need to have appropriate permissions in order for your application to perform certain actions. To understand the different permissions involved when using Data Lake Analytics, see [Add a new user](https://docs.microsoft.com/azure/data-lake-analytics/data-lake-analytics-manage-use-portal#add-a-new-user).
@@ -72,7 +74,7 @@ Here's a code snippet showing how to sign in your user:
         return creds;
     }
 
-### Caching the user's login session
+#### Caching the user's login session
 The basic case for the user popup approach is that the end-user will log in each time the application is run. Often for convenience, application developers choose to allow their users to sign in once and have the application keep track of the session, even after closing and reopening the application. To do this with [Azure's .NET SDK for client authentication](https://www.nuget.org/packages/Microsoft.Rest.ClientRuntime.Azure.Authentication), you'll need to use a token cache.
 
 A token cache is an object that stores tokens for retrieval by your application. This object can be saved to a file, and it can be loaded from a file when your application initializes. If the user's token is available and still valid, the user popup won't need to be shown. Here's a code snippet showing how to load and use a ``TokenCache``:
@@ -110,7 +112,7 @@ A token cache is an object that stores tokens for retrieval by your application.
         return creds;
     }
 
-## Non-interactive - Service principal / application
+### Non-interactive - Service principal / application
 
 Use this option if you want to have your application authenticate against AAD using its own credentials, rather than those of a user. Using this process, your application will receive the tokens necessary to use the Data Lake Analytics .NET SDK as a service principal, which represents your application in AAD.
 
@@ -177,7 +179,7 @@ Here's a code snippet showing how your application can authenticate as a service
         return creds;
     }
 
-# Next step after authentication
+# Setting up and using Data Lake SDKs
 Once your have followed one of the approaches for authentication, you're ready to set up your ADLA .NET SDK client objects, which you'll use to perform various actions with the service. You can then perform actions using the clients, like so:
 
     static void Main(string[] args)
