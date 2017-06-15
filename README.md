@@ -41,6 +41,8 @@ The user will need to have appropriate permissions in order for your application
 
 Here's a code snippet showing how to sign in your user:
 
+    ...
+    
     static void Main(string[] args)
     {
         const string DOMAIN = "<AAD tenant ID or domain>";
@@ -75,6 +77,8 @@ The basic case for the user popup approach is that the end-user will log in each
 
 A token cache is an object that stores tokens for retrieval by your application. This object can be saved to a file, and it can be loaded from a file when your application initializes. If the user's token is available and still valid, the user popup won't need to be shown. Here's a code snippet showing how to load and use a ``TokenCache``:
 
+    ...
+    
     static void Main(string[] args)
     {
         string domain = "<AAD tenant ID / domain>";
@@ -116,6 +120,8 @@ The service principal, just like a user, will need to have appropriate permissio
 
 Here's a code snippet showing how your application can authenticate as a service principal that uses a secret key:
 
+    ...
+    
     static void Main(string[] args)
     {
         string domain = "<AAD tenant ID / domain>";
@@ -143,6 +149,8 @@ Here's a code snippet showing how your application can authenticate as a service
 
 Here's a code snippet showing how your application can authenticate as a service principal that uses a certificate:
 
+    ...
+    
     static void Main(string[] args)
     {
         string domain = "<AAD tenant ID / domain>";
@@ -170,19 +178,21 @@ Here's a code snippet showing how your application can authenticate as a service
     }
 
 # Next step after authentication
-Once your have followed one of the approaches for authentication, you're ready to set up your ADLA .NET SDK client objects, which you'll use to perform various actions with the service:
+Once your have followed one of the approaches for authentication, you're ready to set up your ADLA .NET SDK client objects, which you'll use to perform various actions with the service. You can then perform actions using the clients, like so:
 
-    DataLakeAnalyticsAccountManagementClient adlaAccountClient = new DataLakeAnalyticsAccountManagementClient(armCreds);
-    adlaAccountClient.SubscriptionId = subscriptionId;
-
-    DataLakeAnalyticsCatalogManagementClient adlaCatalogClient = new DataLakeAnalyticsCatalogManagementClient(adlCreds);
-    DataLakeAnalyticsJobManagementClient adlaJobClient = new DataLakeAnalyticsJobManagementClient(adlCreds);
-    
-You can then perform actions using the clients, like so:
-
-    DataLakeAnalyticsAccount account = adlaAccountClient.Account.Get(resourceGroupName, adlaAccountName);
-    
-    Console.WriteLine($"My account's location is: {account.Location}!");
+    static void Main(string[] args)
+    {
+        ...
+        
+        DataLakeAnalyticsJobManagementClient adlaJobClient = new DataLakeAnalyticsJobManagementClient(adlCreds);
+        DataLakeAnalyticsCatalogManagementClient adlaCatalogClient = new DataLakeAnalyticsCatalogManagementClient(adlCreds);
+        DataLakeAnalyticsAccountManagementClient adlaAccountClient = new DataLakeAnalyticsAccountManagementClient(armCreds);
+        adlaAccountClient.SubscriptionId = subscriptionId;
+        
+        DataLakeAnalyticsAccount account = adlaAccountClient.Account.Get(resourceGroupName, adlaAccountName);
+        
+        Console.WriteLine($"My account's location is: {account.Location}!");
+    }
 
 # Contributing
 
