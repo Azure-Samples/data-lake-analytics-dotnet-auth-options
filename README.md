@@ -75,20 +75,19 @@ The basic case for the user popup approach is that the end-user will log in each
 
 A token cache is an object that stores tokens for retrieval by your application. This object can be saved to a file, and it can be loaded from a file when your application initializes. If the user's token is available and still valid, the user popup won't need to be shown. Here's a code snippet showing how to load and use a ``TokenCache``:
 
-    ...
     static void Main(string[] args)
     {
-        const string DOMAIN = "<AAD tenant ID or domain>";
-        const string ARM_TOKEN_AUDIENCE = @"https://management.core.windows.net/";
-        const string ADL_TOKEN_AUDIENCE = @"https://datalake.azure.net/";
+        string domain = "<AAD tenant ID / domain>";
+        Uri armTokenAudience = new Uri(@"https://management.core.windows.net/");
+        Uri adlTokenAudience = new Uri(@"https://datalake.azure.net/");
         
-        // Show token file loading here
+        // Show how to load the tokenCache into memory
 
-        ServiceClientCredentials armCreds = GetCredsInteractivePopup(DOMAIN, ARM_TOKEN_AUDIENCE);
-        ServiceClientCredentials adlCreds = GetCredsInteractivePopup(DOMAIN, ADL_TOKEN_AUDIENCE);
+        ServiceClientCredentials armCreds = GetCredsInteractivePopup(domain, armTokenAudience, tokenCache);
+        ServiceClientCredentials adlCreds = GetCredsInteractivePopup(domain, adlTokenAudience, tokenCache);
     }
     
-    public static ServiceClientCredentials GetCredsInteractivePopup(string domain, string tokenAudience, TokenCache tokenCache, bool forceCacheUpdate = false)
+    public static ServiceClientCredentials GetCredsInteractivePopup(string domain, Uri tokenAudience, TokenCache tokenCache, PromptBehavior promptBehavior = PromptBehavior.Auto)
     {
         SynchronizationContext.SetSynchronizationContext(new SynchronizationContext());
 
@@ -96,11 +95,11 @@ A token cache is an object that stores tokens for retrieval by your application.
         {
             ClientId = "1950a258-227b-4e31-a9cf-717495945fc2",
             ClientRedirectUri = new Uri("urn:ietf:wg:oauth:2.0:oob"),
-            PromptBehavior = PromptBehavior.Always
+            PromptBehavior = promptBehavior
         };
 
         ActiveDirectoryServiceSettings serviceSettings = ActiveDirectoryServiceSettings.Azure;
-        serviceSettings.TokenAudience = new Uri(tokenAudience);
+        serviceSettings.TokenAudience = tokenAudience;
 
         ServiceClientCredentials creds = UserTokenProvider.LoginWithPromptAsync(domain, clientSettings, serviceSettings, tokenCache).GetAwaiter().GetResult();
 
@@ -117,25 +116,73 @@ The service principal, just like a user, will need to have appropriate permissio
 
 Here's a code snippet showing how your application can authenticate as a service principal that uses a secret key:
 
-    abc
+    static void Main(string[] args)
+    {
+        string domain = "<AAD tenant ID / domain>";
+        Uri armTokenAudience = new Uri(@"https://management.core.windows.net/");
+        Uri adlTokenAudience = new Uri(@"https://datalake.azure.net/");
+        
+        string clientId = "<service principal / application client ID>";
+        string secretKey = "<service principal / application secret key>";
+
+        ServiceClientCredentials armCreds = GetCredsServicePrincipalSecretKey(domain, armTokenAudience, clientId, secretKey);
+        ServiceClientCredentials adlCreds = GetCredsServicePrincipalSecretKey(domain, adlTokenAudience, clientId, secretKey);
+    }
+    
+    public static ServiceClientCredentials GetCredsServicePrincipalSecretKey(string domain, Uri tokenAudience, string clientId, string secretKey)
+    {
+        SynchronizationContext.SetSynchronizationContext(new SynchronizationContext());
+
+        var serviceSettings = ActiveDirectoryServiceSettings.Azure;
+        serviceSettings.TokenAudience = tokenAudience;
+
+        var creds = ApplicationTokenProvider.LoginSilentAsync(domain, clientId, secretKey, serviceSettings).GetAwaiter().GetResult();
+
+        return creds;
+    }
 
 Here's a code snippet showing how your application can authenticate as a service principal that uses a certificate:
 
-    abc
+    static void Main(string[] args)
+    {
+        string domain = "<AAD tenant ID / domain>";
+        Uri armTokenAudience = new Uri(@"https://management.core.windows.net/");
+        Uri adlTokenAudience = new Uri(@"https://datalake.azure.net/");
+        
+        string clientId = "<service principal / application client ID>";
+        X509Certificate2 certificate = new X509Certificate2(@"<path to (PFX) certificate file>", "<certificate password>");
+
+        ServiceClientCredentials armCreds = GetCredsServicePrincipalSecretKey(domain, armTokenAudience, clientId, secretKey);
+        ServiceClientCredentials adlCreds = GetCredsServicePrincipalSecretKey(domain, adlTokenAudience, clientId, secretKey);
+    }
+    
+    public static ServiceClientCredentials GetCredsServicePrincipalCertificate(string domain, Uri tokenAudience, string clientId, X509Certificate2 certificate)
+    {
+        SynchronizationContext.SetSynchronizationContext(new SynchronizationContext());
+
+        var clientAssertionCertificate = new ClientAssertionCertificate(clientId, certificate);
+        var serviceSettings = ActiveDirectoryServiceSettings.Azure;
+        serviceSettings.TokenAudience = tokenAudience;
+
+        var creds = ApplicationTokenProvider.LoginSilentWithCertificateAsync(domain, clientAssertionCertificate, serviceSettings).GetAwaiter().GetResult();
+
+        return creds;
+    }
 
 # Next step after authentication
 Once your have followed one of the approaches for authentication, you're ready to set up your ADLA .NET SDK client objects, which you'll use to perform various actions with the service:
 
     DataLakeAnalyticsAccountManagementClient adlaAccountClient = new DataLakeAnalyticsAccountManagementClient(armCreds);
-    adlaAccountClient.SubscriptionId = "<subscription ID>";
-    
+    adlaAccountClient.SubscriptionId = subscriptionId;
+
     DataLakeAnalyticsCatalogManagementClient adlaCatalogClient = new DataLakeAnalyticsCatalogManagementClient(adlCreds);
     DataLakeAnalyticsJobManagementClient adlaJobClient = new DataLakeAnalyticsJobManagementClient(adlCreds);
     
 You can then perform actions using the clients, like so:
 
-    DataLakeAnalyticsAccount account = adlaAccountClient.Account.Get("<resource group name>", "<ADLA account name>");
-    Console.WriteLine($"My Data Lake Analytics account's location is: {account.Location}!");
+    DataLakeAnalyticsAccount account = adlaAccountClient.Account.Get(resourceGroupName, adlaAccountName);
+    
+    Console.WriteLine($"My account's location is: {account.Location}!");
 
 # Contributing
 
