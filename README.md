@@ -81,7 +81,9 @@ Azure Active Directory also supports a form of authentication called "device cod
 #### Caching the user's login session
 Unless you store the login session after your user logs in, and load it when your application initializes, your user will log in each time the application is run. For convenience, you can choose to allow the user to sign in once, and store the session locally for reuse. To do this with [Azure's .NET SDK for client authentication](https://www.nuget.org/packages/Microsoft.Rest.ClientRuntime.Azure.Authentication), you'll need to use a token cache.
 
-A token cache is an object that stores tokens for retrieval by your application. This object can be saved to a file, and it can be loaded from a file when your application initializes. If the user's token is available and still valid, the user popup won't need to be shown. Here's a code snippet showing how to load and use a ``TokenCache``:
+A token cache is an object that stores tokens for retrieval by your application. This object can be saved to a file, and it can be loaded from a file when your application initializes. If the user's token is available and still valid, the user popup won't need to be shown. Here's a code snippet showing how to load and use a ``TokenCache``.
+
+> NOTE: The code below stores the token cache to the local machine in plaintext. We recommend writing and reading to a more secure format or location; you can use Data Protection APIs as a more secure approach. [See this blog post for more information](http://www.cloudidentity.com/blog/2014/07/09/the-new-token-cache-in-adal-v2/).
 
     ...
     
@@ -121,7 +123,7 @@ A token cache is an object that stores tokens for retrieval by your application.
     private static void BeforeTokenCacheAccess(TokenCacheNotificationArgs args)
     {
         // NOTE: We recommend that you do NOT store the token cache in plain text -- don't use the code below as-is.
-        //       Here's one example of a way to store the token cache in a slightly more secure way, using Data Protection APIs:
+        //       Here's one example of a way to store the token cache in a more secure way, using Data Protection APIs:
         //         http://www.cloudidentity.com/blog/2014/07/09/the-new-token-cache-in-adal-v2/
         
         string tokenCachePath = @"<path to token cache file>";
@@ -133,7 +135,7 @@ A token cache is an object that stores tokens for retrieval by your application.
     private static void AfterTokenCacheAccess(TokenCacheNotificationArgs args)
     {
         // NOTE: We recommend that you do NOT store the token cache in plain text -- don't use the code below as-is.
-        //       Here's one example of a way to store the token cache in a slightly more secure way, using Data Protection APIs:
+        //       Here's one example of a way to store the token cache in a more secure way, using Data Protection APIs:
         //         http://www.cloudidentity.com/blog/2014/07/09/the-new-token-cache-in-adal-v2/
         
         string tokenCachePath = @"<path to token cache file>";
