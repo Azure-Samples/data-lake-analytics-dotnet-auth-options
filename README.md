@@ -1,13 +1,25 @@
 # Authenticating your application against Azure Active Directory
 
-When building an application that uses the .NET SDK for Data Lake Analytics (ADLA), an important step is deciding how you want to have your application sign in to (or authenticate against) Azure Active Directory (AAD). There are a few ways to authenticate against AAD using [Azure's .NET SDK for client authentication](https://www.nuget.org/packages/Microsoft.Rest.ClientRuntime.Azure.Authentication):
+When building an application that uses the .NET SDK for Data Lake Analytics (ADLA), you need to pick how your application will sign in to Azure Active Directory (AAD). 
 
- * Interactive - User login
-    * Popup
-    * Device code (not yet supported)
+There are two fundamental ways to have your application sign-in:
+* **Interactive** - Use this method when your application has a user directly using your application and your app needs to perform operations in the context of that user.
+* **Non-interactive** - Thus this method when your application is not meant to interact with ADLA as a specific user. This is useful for long-running services.
+
+## Interactive Llgin options
+
+There are two ways to use interactive login:
+* Interactive **Pop-up** - The device the user is using will see a prompt appear and will use that prompt.
+* Interactive **Device code** - The device the user is using will NOT see a prompt. This is useful in those cases when, for example, it is not possible to show a prompt. This document does not cover this case yet.
+
+## Non-interactive login options
+
  * Non-interactive - Service principal / application
     * Using a secret key
     * Using a certificate
+
+There are a few ways to authenticate against AAD using [Azure's .NET SDK for client authentication](https://www.nuget.org/packages/Microsoft.Rest.ClientRuntime.Azure.Authentication):
+
 
 See [our published sample .NET code](https://github.com/Azure-Samples/data-lake-analytics-dotnet-auth-options) for a solution that shows how to use all of these options. The sample code, as well as the snippets in this article, use the following package versions:
  
