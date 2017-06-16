@@ -13,7 +13,7 @@ There are two fundamental ways to have your application sign-in:
  * [Microsoft.Azure.Management.DataLake.Analytics](https://www.nuget.org/packages/Microsoft.Azure.Management.DataLake.Analytics) - v3.0.0
  * [Microsoft.Azure.Management.DataLake.Store](https://www.nuget.org/packages/Microsoft.Azure.Management.DataLake.Store) - v2.2.0
 
-You can install these packages via the NuGet with these commands
+You can install these packages via the NuGet commane line with the following commands:
 
 ```
 Install-Package -Id Microsoft.Rest.ClientRuntime.Azure.Authentication  -Version 2.3.1
@@ -41,17 +41,6 @@ using Microsoft.Azure.Management.DataLake.Store.Models;
 using Microsoft.IdentityModel.Clients.ActiveDirectory;
 ```
 
-## Tokens
-
-Ultimately, no matter which variety of interactive or non-interactive authentication you pick, you will end up with several "authentication tokens". A token represents the user or an application, and is used to validate that the request is authorized to perform the desired action.
-
-## Token audiences
-
-We mentioned you will get use multiple tokens. Specifically you will get one token per API endpoint. Each endpoint is called a "token audience".
-
-The following are the token audiences:
-* Azure Resource Manager operations: ``https://management.core.windows.net/``. 
-* Data plane operations: ``https://datalake.azure.net/``.
 
 ## Interactive Login options
 
@@ -74,114 +63,89 @@ Use this option if you want to have a browser popup appear when the user signs i
 
    ![Interactive - User popup](./media/auth_popup.png)
 
-The user will need to have appropriate permissions in order for your application to perform certain actions. To understand the different permissions involved when using Data Lake Analytics, see [Add a new user](https://docs.microsoft.com/azure/data-lake-analytics/data-lake-analytics-manage-use-portal#add-a-new-user).
 
-Variables
 
 ```
+public static string MY_DOCUMENTS= System.Environment.GetFolderPath( System.Environment.SpecialFolder.MyDocuments);
 public static string DOMAIN = "microsoft.onmicrosoft.com";
-public static string ARM_TOKEN_AUDIENCE = @"https://management.core.windows.net/";
-public static string ADL_TOKEN_AUDIENCE = @"https://datalake.azure.net/";
+public static System.Uri ARM_TOKEN_AUDIENCE = new System.Uri( @"https://management.core.windows.net/");
+public static System.Uri ADL_TOKEN_AUDIENCE = new System.Uri( @"https://datalake.azure.net/" );
+public static string TOKEN_CACHE_PATH = System.IO.Path.Combine(MY_DOCUMENTS, "my.tokencache");
+public static string INTERACTIVE_CLIENTID = "1950a258-227b-4e31-a9cf-717495945fc2";
 
 ```
 
-Here's a code snippet showing how to sign in your user:
+## Basic flow
+
+Your code needs to get credentials (tokens) for each end Azure REST endpoint (token audience) that you intend to use.
+
+These are the Azure REST endpoints (token audiences):
+
+* Azure Resource Manager operations: ``https://management.core.windows.net/``. 
+* Data plane operations: ``https://datalake.azure.net/``.
 
 ```
 static void Main(string[] args)
 {
-   var armCreds = GetCredsInteractivePopup(DOMAIN, ARM_TOKEN_AUDIENCE);
-   var adlCreds = GetCredsInteractivePopup(DOMAIN, ADL_TOKEN_AUDIENCE);
-
+   var tokenCache = GetTokenCache(TOKEN_CACHE_PATH);
+   var armCreds = GetCredsInteractivePopup(DOMAIN, ARM_TOKEN_AUDIENCE, tokenCache);
+   var adlCreds = GetCredsInteractivePopup(DOMAIN, ADL_TOKEN_AUDIENCE, tokenCache);
 }
+```
 
+The token cache minimizes the number of times the users sees a pop-up.
+
+```
+private static TokenCache GetTokenCache(string path)
+{
+   var tokenCache = new TokenCache();
+
+   tokenCache.BeforeAccess += notificationArgs =>
+   {
+       if (File.Exists(path))
+       {
+           var bytes = File.ReadAllBytes(path);
+           notificationArgs.TokenCache.Deserialize(bytes);
+       }
+   };
+
+   tokenCache.AfterAccess += notificationArgs =>
+   {
+       var bytes = notificationArgs.TokenCache.Serialize();
+       File.WriteAllBytes(path, bytes);
+   };
+   return tokenCache;
+}
+```
+
+Once the token cache is created, you can fetch credentials for each endpoint.
+
+```
 private static ServiceClientCredentials GetCredsInteractivePopup(
    string domain, 
-   string tokenAudience, 
+   System.Uri tokenAudience, 
+   TokenCache tokenCache, 
    PromptBehavior promptBehavior = PromptBehavior.Auto)
 {
    SynchronizationContext.SetSynchronizationContext(new SynchronizationContext());
 
    var clientSettings = new ActiveDirectoryClientSettings
    {
-       ClientId = "1950a258-227b-4e31-a9cf-717495945fc2",
-       ClientRedirectUri = new Uri("urn:ietf:wg:oauth:2.0:oob"),
+       ClientId = INTERACTIVE_CLIENTID,
+       ClientRedirectUri = new System.Uri("urn:ietf:wg:oauth:2.0:oob"),
        PromptBehavior = promptBehavior
    };
 
    var serviceSettings = ActiveDirectoryServiceSettings.Azure;
-   serviceSettings.TokenAudience = new Uri(tokenAudience);
+   serviceSettings.TokenAudience = tokenAudience;
 
-   var creds = UserTokenProvider.LoginWithPromptAsync(domain, clientSettings, serviceSettings).GetAwaiter().GetResult();
-
+   var creds = UserTokenProvider.LoginWithPromptAsync(domain, clientSettings, serviceSettings, tokenCache).GetAwaiter().GetResult();
    return creds;
 }
 ```
 
-## Caching the user's login session
-Unless you store the login session after your user logs in, and load it when your application initializes, your user will log in each time the application is run. For convenience, you can choose to allow the user to sign in once, and store the session locally for reuse. To do this with [Azure's .NET SDK for client authentication](https://www.nuget.org/packages/Microsoft.Rest.ClientRuntime.Azure.Authentication), you'll need to use a token cache.
-
-A token cache is an object that stores tokens for retrieval by your application. This object can be saved to a file, and it can be loaded from a file when your application initializes. If the user's token is available and still valid, the user popup won't need to be shown. Here's a code snippet showing how to load and use a ``TokenCache``.
-
 > NOTE: The code below stores the token cache to the local machine in plaintext. We recommend writing and reading to a more secure format or location; you can use Data Protection APIs as a more secure approach. [See this blog post for more information](http://www.cloudidentity.com/blog/2014/07/09/the-new-token-cache-in-adal-v2/).
 
-    ...
-    
-    static void Main(string[] args)
-    {
-        string domain = "<AAD tenant ID / domain>";
-        Uri armTokenAudience = new Uri(@"https://management.core.windows.net/");
-        Uri adlTokenAudience = new Uri(@"https://datalake.azure.net/");
-        
-        TokenCache tokenCache = new TokenCache();
-        tokenCache.BeforeAccess = BeforeTokenCacheAccess;
-        tokenCache.AfterAccess = AfterTokenCacheAccess;
-
-        ServiceClientCredentials armCreds = GetCredsInteractivePopup(domain, armTokenAudience, tokenCache);
-        ServiceClientCredentials adlCreds = GetCredsInteractivePopup(domain, adlTokenAudience, tokenCache);
-    }
-    
-    private static ServiceClientCredentials GetCredsInteractivePopup(string domain, Uri tokenAudience, TokenCache tokenCache, PromptBehavior promptBehavior = PromptBehavior.Auto)
-    {
-        SynchronizationContext.SetSynchronizationContext(new SynchronizationContext());
-
-        ActiveDirectoryClientSettings clientSettings = new ActiveDirectoryClientSettings
-        {
-            ClientId = "1950a258-227b-4e31-a9cf-717495945fc2",
-            ClientRedirectUri = new Uri("urn:ietf:wg:oauth:2.0:oob"),
-            PromptBehavior = promptBehavior
-        };
-
-        ActiveDirectoryServiceSettings serviceSettings = ActiveDirectoryServiceSettings.Azure;
-        serviceSettings.TokenAudience = tokenAudience;
-
-        ServiceClientCredentials creds = UserTokenProvider.LoginWithPromptAsync(domain, clientSettings, serviceSettings, tokenCache).GetAwaiter().GetResult();
-
-        return creds;
-    }
-    
-    private static void BeforeTokenCacheAccess(TokenCacheNotificationArgs args)
-    {
-        // NOTE: We recommend that you do NOT store the token cache in plain text -- don't use the code below as-is.
-        //       Here's one example of a way to store the token cache in a more secure way, using Data Protection APIs:
-        //         http://www.cloudidentity.com/blog/2014/07/09/the-new-token-cache-in-adal-v2/
-        
-        string tokenCachePath = @"<path to token cache file>";
-
-        if (File.Exists(tokenCachePath))
-            args.TokenCache.Deserialize(File.ReadAllBytes(tokenCachePath));
-    }
-
-    private static void AfterTokenCacheAccess(TokenCacheNotificationArgs args)
-    {
-        // NOTE: We recommend that you do NOT store the token cache in plain text -- don't use the code below as-is.
-        //       Here's one example of a way to store the token cache in a more secure way, using Data Protection APIs:
-        //         http://www.cloudidentity.com/blog/2014/07/09/the-new-token-cache-in-adal-v2/
-        
-        string tokenCachePath = @"<path to token cache file>";
-
-        File.WriteAllBytes(tokenCachePath, args.TokenCache.Serialize());
-    }
 
 ## Interactive - Device code - Authentication
 
