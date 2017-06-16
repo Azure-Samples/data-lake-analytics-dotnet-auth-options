@@ -99,8 +99,8 @@ static void Main(string[] args)
    string INTERACTIVE_CLIENTID = "1950a258-227b-4e31-a9cf-717495945fc2";
 
    var tokenCache = GetTokenCache(TOKEN_CACHE_PATH);
-   var armCreds = GetCredsInteractivePopup(TENANT, ARM_TOKEN_AUDIENCE, tokenCache);
-   var adlCreds = GetCredsInteractivePopup(TENANT, ADL_TOKEN_AUDIENCE, tokenCache);
+   var armCreds = GetCreds_User_Popup(TENANT, ARM_TOKEN_AUDIENCE, tokenCache);
+   var adlCreds = GetCreds_User_Popup(TENANT, ADL_TOKEN_AUDIENCE, tokenCache);
    // use the creds to create REST client obkects
 }
 ```
@@ -214,7 +214,7 @@ private static TokenCache GetTokenCache(string path)
 
 ### GetCredsInteractivePopup
 ```
-private static ServiceClientCredentials GetCredsInteractivePopup(
+private static ServiceClientCredentials GetCreds_User_Popup(
    string tenant, 
    System.Uri tokenAudience, 
    TokenCache tokenCache, 
