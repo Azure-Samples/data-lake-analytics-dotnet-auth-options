@@ -7,23 +7,6 @@ There are two fundamental ways to have your application sign-in:
 * **Interactive** - Use this method when your application has a user directly using your application and your app needs to perform operations in the context of that user.
 * **Non-interactive** - Thus this method when your application is not meant to interact with ADLA as a specific user. This is useful for long-running services.
 
-## Interactive Login options
-
-There are two ways to use interactive login:
-* Interactive **Pop-up** - The device the user is using will see a prompt appear and will use that prompt.
-* Interactive **Device code** - The device the user is using will NOT see a prompt. This is useful in those cases when, for example, it is not possible to show a prompt. This document does not cover this case yet.
-
-## Non-interactive login options
-
-Non-interactive - Service principal / application
- * Using a secret key
- * Using a certificate
-
-## For more information
-
-See  [Azure's .NET SDK for client authentication](https://www.nuget.org/packages/Microsoft.Rest.ClientRuntime.Azure.Authentication)
-
-
 ## Required NuGet packages
 
  * [Microsoft.Rest.ClientRuntime.Azure.Authentication](https://www.nuget.org/packages/Microsoft.Rest.ClientRuntime.Azure.Authentication) - v2.3.1
@@ -62,9 +45,23 @@ The following are the token audiences:
 * Azure Resource Manager operations: ``https://management.core.windows.net/``. 
 * Data plane operations: ``https://datalake.azure.net/``.
 
-## Authenticating against Azure Active Directory
+## Interactive Login options
 
-### Interactive - User popup
+There are two ways to use interactive login:
+* Interactive **Pop-up** - The device the user is using will see a prompt appear and will use that prompt.
+* Interactive **Device code** - The device the user is using will NOT see a prompt. This is useful in those cases when, for example, it is not possible to show a prompt. This document does not cover this case yet.
+
+## Non-interactive login options
+
+Non-interactive - Service principal / application
+ * Using a secret key
+ * Using a certificate
+
+## For more information
+
+See  [Azure's .NET SDK for client authentication](https://www.nuget.org/packages/Microsoft.Rest.ClientRuntime.Azure.Authentication)
+
+## Interactive - User popup - Authentication  
 Use this option if you want to have a browser popup appear when the user signs in to your application, showing an AAD login form. From this interactive popup, your application will receive the tokens necessary to use the Data Lake Analytics .NET SDK on behalf of the user.
 
    ![Interactive - User popup](./media/auth_popup.png)
@@ -104,7 +101,7 @@ Here's a code snippet showing how to sign in your user:
         return creds;
     }
 
-#### Caching the user's login session
+## Caching the user's login session
 Unless you store the login session after your user logs in, and load it when your application initializes, your user will log in each time the application is run. For convenience, you can choose to allow the user to sign in once, and store the session locally for reuse. To do this with [Azure's .NET SDK for client authentication](https://www.nuget.org/packages/Microsoft.Rest.ClientRuntime.Azure.Authentication), you'll need to use a token cache.
 
 A token cache is an object that stores tokens for retrieval by your application. This object can be saved to a file, and it can be loaded from a file when your application initializes. If the user's token is available and still valid, the user popup won't need to be shown. Here's a code snippet showing how to load and use a ``TokenCache``.
@@ -169,10 +166,11 @@ A token cache is an object that stores tokens for retrieval by your application.
         File.WriteAllBytes(tokenCachePath, args.TokenCache.Serialize());
     }
 
-### Interactive - Device code
+## Interactive - Device code - Authentication
+
 Azure Active Directory also supports a form of authentication called "device code" authentication. Using this, you can direct your end-user
 
-### Non-interactive - Service principal / application
+## Non-interactive - Service principal / application - Authentication
 
 Use this option if you want to have your application authenticate against AAD using its own credentials, rather than those of a user. Using this process, your application will receive the tokens necessary to use the Data Lake Analytics .NET SDK as a service principal, which represents your application in AAD.
 
@@ -239,7 +237,7 @@ Here's a code snippet showing how your application can authenticate as a service
         return creds;
     }
 
-# Setting up and using Data Lake SDKs
+## Setting up and using Data Lake SDKs
 Once your have followed one of the approaches for authentication, you're ready to set up your ADLA .NET SDK client objects, which you'll use to perform various actions with the service. Remember to use the right tokens/credentials with the right clients: use the ADL credentials for data plane operations, and use the ARM credentials for resource- and account-related operations.
 
 You can then perform actions using the clients, like so:
@@ -252,20 +250,20 @@ You can then perform actions using the clients, like so:
         
         ...
         
-        DataLakeAnalyticsAccountManagementClient adlaAccountClient = new DataLakeAnalyticsAccountManagementClient(armCreds);
+        var adlaAccountClient = new DataLakeAnalyticsAccountManagementClient(armCreds);
         adlaAccountClient.SubscriptionId = subscriptionId;
-        DataLakeStoreAccountManagementClient adlsAccountClient = new DataLakeStoreAccountManagementClient(armCreds);
+        var adlsAccountClient = new DataLakeStoreAccountManagementClient(armCreds);
         adlsAccountClient.SubscriptionId = subscriptionId;
 
-        DataLakeAnalyticsCatalogManagementClient adlaCatalogClient = new DataLakeAnalyticsCatalogManagementClient(adlCreds);
-        DataLakeAnalyticsJobManagementClient adlaJobClient = new DataLakeAnalyticsJobManagementClient(adlCreds);
-        DataLakeStoreFileSystemManagementClient adlsFileSystemClient = new DataLakeStoreFileSystemManagementClient(adlCreds);
+        var adlaCatalogClient = new DataLakeAnalyticsCatalogManagementClient(adlCreds);
+        var adlaJobClient = new DataLakeAnalyticsJobManagementClient(adlCreds);
+        var adlsFileSystemClient = new DataLakeStoreFileSystemManagementClient(adlCreds);
         
-        DataLakeAnalyticsAccount account = adlaAccountClient.Account.Get(resourceGroupName, adlaAccountName);
+        var account = adlaAccountClient.Account.Get(resourceGroupName, adlaAccountName);
         
         Console.WriteLine($"My account's location is: {account.Location}!");
     }
 
-# Contributing
+## Contributing
 
 This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/). For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments. 
