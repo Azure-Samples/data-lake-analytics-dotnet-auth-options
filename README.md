@@ -76,7 +76,8 @@ There are two ways to use interactive login:
 
 
 
-## Interactive - User popup - Authentication  
+## How to authenticate interactively with a user popup
+
 Use this option if you want to have a browser popup appear when the user signs in to your application, showing an AAD login form. From this interactive popup, your application will receive the tokens necessary to use the Data Lake Analytics .NET SDK on behalf of the user.
 
 The token cache minimizes the number of times the users sees a pop-up.
@@ -100,31 +101,32 @@ static void Main(string[] args)
 > NOTE: The code above stores the token cache to the local machine in plaintext. We recommend writing and reading to a more secure format or location; you can use Data Protection APIs as a more secure approach. [See this blog post for more information](http://www.cloudidentity.com/blog/2014/07/09/the-new-token-cache-in-adal-v2/).
 
 
-## Interactive - Device Code - Authentication  
+## How to authenticate interactively with a device code
 
 Azure Active Directory also supports a form of authentication called "device code" authentication. Using this, you can direct your end-user
 
 This is not supported yet.
 
-## Non-interactive - Service principal / application - Authentication
+## Non-interactive - Service principal - Authentication
 
-Use this option if you want to have your application authenticate against AAD using its own credentials, rather than those of a user. Using this process, your application will receive the tokens necessary to use the Data Lake Analytics .NET SDK as a service principal, which represents your application in AAD.
-
-You will first need to provision a service principal (also known as a registered application) in AAD. To create a service principal with a certificate or a secret key, [follow the steps in this article](https://docs.microsoft.com/en-us/azure/azure-resource-manager/resource-group-authenticate-service-principal).
-
-The service principal, just like a user, will need to have appropriate permissions in order for your application to perform certain actions. Regardless of whether a user is the one running your application, the service principal's credentials will be used, and the user's credentials will not be used. To understand the different permissions involved when using Data Lake Analytics, see [Add a new user](https://docs.microsoft.com/azure/data-lake-analytics/data-lake-analytics-manage-use-portal#add-a-new-user).
+Use this option if you want to have your application authenticate against AAD using its own credentials, rather than those of a user. Using this process, your application will receive the tokens necessary to use the Data Lake Analytics .NET SDK as a service principal, 
+which represents your application in AAD.
 
 Non-interactive - Service principal / application
  * Using a secret key
  * Using a certificate
 
+## Service principals
+To create service principal [follow the steps in this article](https://docs.microsoft.com/en-us/azure/azure-resource-manager/resource-group-authenticate-service-principal).
+
+## Non-interactive client ids
 All non-interactive login options require a clientid
 
 ```
 public static string NONINTERACTIVE_CLIENTID = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx";
 ```
 
-## Non-interactive secret key authentication
+## How to authenticate non-interactively with a secret key
 
 ```
 public static string NONINTERACTIVE_SECRETKEY = ".....";
@@ -137,7 +139,7 @@ static void Main(string[] args)
 ```
 
 
-## Non-interactive certifiate authentication
+## How to authenticate non-interactively with a certificate
 
 ```
 public static X509Certificate2 NONINTERACTIVE_CERT = 
