@@ -40,6 +40,8 @@ When authenticating, you'll specify a token audience, which specifies the API en
 ### Interactive - User popup
 Use this option if you want to have a browser popup appear when the user signs in to your application, showing an AAD login form. From this interactive popup, your application will receive the tokens necessary to use the Data Lake Analytics .NET SDK on behalf of the user.
 
+   ![Interactive - User popup](./media/auth_popup.png)
+
 The user will need to have appropriate permissions in order for your application to perform certain actions. To understand the different permissions involved when using Data Lake Analytics, see [Add a new user](https://docs.microsoft.com/azure/data-lake-analytics/data-lake-analytics-manage-use-portal#add-a-new-user).
 
 Here's a code snippet showing how to sign in your user:
