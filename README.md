@@ -9,7 +9,7 @@ When building an application that uses the .NET SDK for Data Lake Analytics (ADL
     * Using a secret key
     * Using a certificate
 
-See [our published sample .NET code](https://azure.microsoft.com/en-us/resources/samples/data-lake-analytics-dotnet-auth-options) for a solution that shows how to use all of these options. The sample code, as well as the snippets in this article, use the following package versions:
+See [our published sample .NET code](https://github.com/Azure-Samples/data-lake-analytics-dotnet-auth-options) for a solution that shows how to use all of these options. The sample code, as well as the snippets in this article, use the following package versions:
  
  * [Microsoft.Rest.ClientRuntime.Azure.Authentication](https://www.nuget.org/packages/Microsoft.Rest.ClientRuntime.Azure.Authentication) - v2.3.1
  * [Microsoft.Azure.Management.DataLake.Analytics](https://www.nuget.org/packages/Microsoft.Azure.Management.DataLake.Analytics) - v3.0.0
