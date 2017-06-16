@@ -204,7 +204,7 @@ private static TokenCache GetTokenCache(string path)
 }
 ```
 
-### GetCredsInteractivePopup
+### GetCreds_User_Popup
 ```
 private static ServiceClientCredentials GetCreds_User_Popup(
    string tenant, 
@@ -234,7 +234,7 @@ private static ServiceClientCredentials GetCreds_User_Popup(
 }
 ```
 
-### GetCredsServicePrincipalSecretKey
+### GetCreds_SPI_SecretKey
 
 ```
 private static ServiceClientCredentials GetCreds_SPI_SecretKey(
@@ -256,7 +256,7 @@ private static ServiceClientCredentials GetCreds_SPI_SecretKey(
   return creds;
 }
 ```
-### GetCredsServicePrincipalCertificate
+### GetCreds_SPI_Cert
 
 ```
 private static ServiceClientCredentials GetCreds_SPI_Cert(
