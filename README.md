@@ -76,9 +76,6 @@ Here's a code snippet showing how to sign in your user:
 
         return creds;
     }
-    
-### Interactive - Device code
-Azure Active Directory also supports a form of authentication called "device code" authentication. Using this, you can direct your end-user
 
 #### Caching the user's login session
 Unless you store the login session after your user logs in, and load it when your application initializes, your user will log in each time the application is run. For convenience, you can choose to allow the user to sign in once, and store the session locally for reuse. To do this with [Azure's .NET SDK for client authentication](https://www.nuget.org/packages/Microsoft.Rest.ClientRuntime.Azure.Authentication), you'll need to use a token cache.
@@ -144,6 +141,9 @@ A token cache is an object that stores tokens for retrieval by your application.
 
         File.WriteAllBytes(tokenCachePath, args.TokenCache.Serialize());
     }
+
+### Interactive - Device code
+Azure Active Directory also supports a form of authentication called "device code" authentication. Using this, you can direct your end-user
 
 ### Non-interactive - Service principal / application
 
