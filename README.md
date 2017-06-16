@@ -13,6 +13,14 @@ There are two fundamental ways to have your application sign-in:
  * [Microsoft.Azure.Management.DataLake.Analytics](https://www.nuget.org/packages/Microsoft.Azure.Management.DataLake.Analytics) - v3.0.0
  * [Microsoft.Azure.Management.DataLake.Store](https://www.nuget.org/packages/Microsoft.Azure.Management.DataLake.Store) - v2.2.0
 
+You can install these packages via the NuGet with these commands
+
+```
+Install-Package -Id Microsoft.Rest.ClientRuntime.Azure.Authentication  -Version 2.3.1
+Install-Package -Id Microsoft.Azure.Management.DataLake.Analytics  -Version 3.0.0
+Install-Package -Id Microsoft.Azure.Management.DataLake.Store  -Version 2.2.0
+```
+
 
 ## Required NuGet packages
 
@@ -68,38 +76,47 @@ Use this option if you want to have a browser popup appear when the user signs i
 
 The user will need to have appropriate permissions in order for your application to perform certain actions. To understand the different permissions involved when using Data Lake Analytics, see [Add a new user](https://docs.microsoft.com/azure/data-lake-analytics/data-lake-analytics-manage-use-portal#add-a-new-user).
 
+Variables
+
+```
+public static string DOMAIN = "microsoft.onmicrosoft.com";
+public static string ARM_TOKEN_AUDIENCE = @"https://management.core.windows.net/";
+public static string ADL_TOKEN_AUDIENCE = @"https://datalake.azure.net/";
+
+```
+
 Here's a code snippet showing how to sign in your user:
 
-    ...
-    
-    static void Main(string[] args)
-    {
-        const string DOMAIN = "<AAD tenant ID or domain>";
-        const string ARM_TOKEN_AUDIENCE = @"https://management.core.windows.net/";
-        const string ADL_TOKEN_AUDIENCE = @"https://datalake.azure.net/";
+```
+static void Main(string[] args)
+{
+   var armCreds = GetCredsInteractivePopup(DOMAIN, ARM_TOKEN_AUDIENCE);
+   var adlCreds = GetCredsInteractivePopup(DOMAIN, ADL_TOKEN_AUDIENCE);
 
-        ServiceClientCredentials armCreds = GetCredsInteractivePopup(DOMAIN, ARM_TOKEN_AUDIENCE);
-        ServiceClientCredentials adlCreds = GetCredsInteractivePopup(DOMAIN, ADL_TOKEN_AUDIENCE);
-    }
-    
-    private static ServiceClientCredentials GetCredsInteractivePopup(string domain, string tokenAudience, PromptBehavior promptBehavior = PromptBehavior.Auto)
-    {
-        SynchronizationContext.SetSynchronizationContext(new SynchronizationContext());
+}
 
-        ActiveDirectoryClientSettings clientSettings = new ActiveDirectoryClientSettings
-        {
-            ClientId = "1950a258-227b-4e31-a9cf-717495945fc2",
-            ClientRedirectUri = new Uri("urn:ietf:wg:oauth:2.0:oob"),
-            PromptBehavior = promptBehavior
-        };
+private static ServiceClientCredentials GetCredsInteractivePopup(
+   string domain, 
+   string tokenAudience, 
+   PromptBehavior promptBehavior = PromptBehavior.Auto)
+{
+   SynchronizationContext.SetSynchronizationContext(new SynchronizationContext());
 
-        ActiveDirectoryServiceSettings serviceSettings = ActiveDirectoryServiceSettings.Azure;
-        serviceSettings.TokenAudience = new Uri(tokenAudience);
+   var clientSettings = new ActiveDirectoryClientSettings
+   {
+       ClientId = "1950a258-227b-4e31-a9cf-717495945fc2",
+       ClientRedirectUri = new Uri("urn:ietf:wg:oauth:2.0:oob"),
+       PromptBehavior = promptBehavior
+   };
 
-        ServiceClientCredentials creds = UserTokenProvider.LoginWithPromptAsync(domain, clientSettings, serviceSettings).GetAwaiter().GetResult();
+   var serviceSettings = ActiveDirectoryServiceSettings.Azure;
+   serviceSettings.TokenAudience = new Uri(tokenAudience);
 
-        return creds;
-    }
+   var creds = UserTokenProvider.LoginWithPromptAsync(domain, clientSettings, serviceSettings).GetAwaiter().GetResult();
+
+   return creds;
+}
+```
 
 ## Caching the user's login session
 Unless you store the login session after your user logs in, and load it when your application initializes, your user will log in each time the application is run. For convenience, you can choose to allow the user to sign in once, and store the session locally for reuse. To do this with [Azure's .NET SDK for client authentication](https://www.nuget.org/packages/Microsoft.Rest.ClientRuntime.Azure.Authentication), you'll need to use a token cache.
