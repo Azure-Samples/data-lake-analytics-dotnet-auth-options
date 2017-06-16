@@ -1,12 +1,13 @@
 # Authenticating your application against Azure Active Directory
 
+## Overview
 When building an application that uses the .NET SDK for Data Lake Analytics (ADLA), you need to pick how your application will sign in to Azure Active Directory (AAD). 
 
 There are two fundamental ways to have your application sign-in:
 * **Interactive** - Use this method when your application has a user directly using your application and your app needs to perform operations in the context of that user.
 * **Non-interactive** - Thus this method when your application is not meant to interact with ADLA as a specific user. This is useful for long-running services.
 
-## Interactive Llgin options
+## Interactive Login options
 
 There are two ways to use interactive login:
 * Interactive **Pop-up** - The device the user is using will see a prompt appear and will use that prompt.
@@ -14,38 +15,52 @@ There are two ways to use interactive login:
 
 ## Non-interactive login options
 
- * Non-interactive - Service principal / application
-    * Using a secret key
-    * Using a certificate
+Non-interactive - Service principal / application
+ * Using a secret key
+ * Using a certificate
 
-There are a few ways to authenticate against AAD using [Azure's .NET SDK for client authentication](https://www.nuget.org/packages/Microsoft.Rest.ClientRuntime.Azure.Authentication):
+## For more information
+
+See  [Azure's .NET SDK for client authentication](https://www.nuget.org/packages/Microsoft.Rest.ClientRuntime.Azure.Authentication)
 
 
-See [our published sample .NET code](https://github.com/Azure-Samples/data-lake-analytics-dotnet-auth-options) for a solution that shows how to use all of these options. The sample code, as well as the snippets in this article, use the following package versions:
- 
+## Required NuGet packages
+
  * [Microsoft.Rest.ClientRuntime.Azure.Authentication](https://www.nuget.org/packages/Microsoft.Rest.ClientRuntime.Azure.Authentication) - v2.3.1
  * [Microsoft.Azure.Management.DataLake.Analytics](https://www.nuget.org/packages/Microsoft.Azure.Management.DataLake.Analytics) - v3.0.0
  * [Microsoft.Azure.Management.DataLake.Store](https://www.nuget.org/packages/Microsoft.Azure.Management.DataLake.Store) - v2.2.0
- 
-You will need some or all of the following namespaces included at the top of your class file:
 
-    using System;
-    using System.IO;
-    using System.Threading;
-    using System.Security.Cryptography.X509Certificates;
 
-    using Microsoft.Rest;
-    using Microsoft.Rest.Azure.Authentication;
-    using Microsoft.Azure.Management.DataLake.Analytics;
-    using Microsoft.Azure.Management.DataLake.Analytics.Models;
-    using Microsoft.Azure.Management.DataLake.Store;
-    using Microsoft.Azure.Management.DataLake.Store.Models;
-    using Microsoft.IdentityModel.Clients.ActiveDirectory;
+## Required NuGet packages
 
-## Understanding Azure Active Directory tokens
-When your application authenticates against AAD using any of these methods, tokens are received from AAD that are used for each request to Azure Data Lake Analytics. The token represents the user or the application, depending on the method, and is used to validate that the request is authorized to perform the desired action.
+To simplify the code samples, ensure you have the following `using` statements at the top of your C# code.
 
-When authenticating, you'll specify a token audience, which specifies the API endpoint for which the token should be valid. For resource- or account-related operations, you'll use the Azure Resource Manager (ARM) token audience ``https://management.core.windows.net/``. For all Data Lake data plane operations, such as job submission, catalog exploration, or file access, you'll use the ADL token audience ``https://datalake.azure.net/``.
+```
+using System;
+using System.IO;
+using System.Threading;
+using System.Security.Cryptography.X509Certificates;
+
+using Microsoft.Rest;
+using Microsoft.Rest.Azure.Authentication;
+using Microsoft.Azure.Management.DataLake.Analytics;
+using Microsoft.Azure.Management.DataLake.Analytics.Models;
+using Microsoft.Azure.Management.DataLake.Store;
+using Microsoft.Azure.Management.DataLake.Store.Models;
+using Microsoft.IdentityModel.Clients.ActiveDirectory;
+```
+
+## Tokens
+
+Ultimately, no matter which variety of interactive or non-interactive authentication you pick, you will end up with several "authentication tokens". A token represents the user or an application, and is used to validate that the request is authorized to perform the desired action.
+
+## Token audiences
+
+We mentioned you will get use multiple tokens. Specifically you will get one token per API endpoint. Each endpoint is called a "token audience".
+
+The following are the token audiences:
+* Azure Resource Manager (ARM) token audience: ``https://management.core.windows.net/``. 
+* Data plane operations: ``https://datalake.azure.net/``.
 
 ## Authenticating against Azure Active Directory
 
