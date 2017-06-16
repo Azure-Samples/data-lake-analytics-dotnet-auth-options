@@ -60,9 +60,9 @@ public static Program
 
    static void Main(string[] args)
    {
-      // some preparation steps
-      var armCreds = GetCredsInteractivePopup(DOMAIN, ARM_TOKEN_AUDIENCE, tokenCache);
-      var adlCreds = GetCredsInteractivePopup(DOMAIN, ADL_TOKEN_AUDIENCE, tokenCache);
+      // some preparation steps if needed
+      var armCreds = GetCreds_____(DOMAIN, ARM_TOKEN_AUDIENCE, ... );
+      var adlCreds = GetCreds_____(DOMAIN, ADL_TOKEN_AUDIENCE, ... );
       // use the creds to create REST client obkects
    }
 }
@@ -99,13 +99,23 @@ static void Main(string[] args)
 }
 ```
 
+
+> NOTE: The code above stores the token cache to the local machine in plaintext. We recommend writing and reading to a more secure format or location; you can use Data Protection APIs as a more secure approach. [See this blog post for more information](http://www.cloudidentity.com/blog/2014/07/09/the-new-token-cache-in-adal-v2/).
+
+
 ## Interactive - Device Code - Authentication  
 
 Azure Active Directory also supports a form of authentication called "device code" authentication. Using this, you can direct your end-user
 
 This is not supported yet.
 
-# Non-interactive login options
+## Non-interactive - Service principal / application - Authentication
+
+Use this option if you want to have your application authenticate against AAD using its own credentials, rather than those of a user. Using this process, your application will receive the tokens necessary to use the Data Lake Analytics .NET SDK as a service principal, which represents your application in AAD.
+
+You will first need to provision a service principal (also known as a registered application) in AAD. To create a service principal with a certificate or a secret key, [follow the steps in this article](https://docs.microsoft.com/en-us/azure/azure-resource-manager/resource-group-authenticate-service-principal).
+
+The service principal, just like a user, will need to have appropriate permissions in order for your application to perform certain actions. Regardless of whether a user is the one running your application, the service principal's credentials will be used, and the user's credentials will not be used. To understand the different permissions involved when using Data Lake Analytics, see [Add a new user](https://docs.microsoft.com/azure/data-lake-analytics/data-lake-analytics-manage-use-portal#add-a-new-user).
 
 Non-interactive - Service principal / application
  * Using a secret key
@@ -121,84 +131,30 @@ public static string NONINTERACTIVE_CLIENTID = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxx
 
 ```
 public static string NONINTERACTIVE_SECRETKEY = ".....";
+
+static void Main(string[] args)
+{
+  var armCreds = GetCredsServicePrincipalSecretKey(DOMAIN, ARM_TOKEN_AUDIENCE, NONINTERACTIVE_CLIENTID, NONINTERACTIVE_SECRETKEY);
+  var adlCreds = GetCredsServicePrincipalSecretKey(DOMAIN, ADL_TOKEN_AUDIENCE, NONINTERACTIVE_CLIENTID, NONINTERACTIVE_SECRETKEY);
+}
 ```
+
 
 ## Non-interactive certifiate authentication
 
-'''
+```
 public static X509Certificate2 NONINTERACTIVE_CERT = 
    new X509Certificate2(@"d:\cert.pfx", "<certpassword>");
-'''
 
-
-## For more information
-
-See  [Azure's .NET SDK for client authentication](https://www.nuget.org/packages/Microsoft.Rest.ClientRuntime.Azure.Authentication)
-
-
-> NOTE: The code below stores the token cache to the local machine in plaintext. We recommend writing and reading to a more secure format or location; you can use Data Protection APIs as a more secure approach. [See this blog post for more information](http://www.cloudidentity.com/blog/2014/07/09/the-new-token-cache-in-adal-v2/).
-
-
-
-## Non-interactive - Service principal / application - Authentication
-
-Use this option if you want to have your application authenticate against AAD using its own credentials, rather than those of a user. Using this process, your application will receive the tokens necessary to use the Data Lake Analytics .NET SDK as a service principal, which represents your application in AAD.
-
-You will first need to provision a service principal (also known as a registered application) in AAD. To create a service principal with a certificate or a secret key, [follow the steps in this article](https://docs.microsoft.com/en-us/azure/azure-resource-manager/resource-group-authenticate-service-principal).
-
-The service principal, just like a user, will need to have appropriate permissions in order for your application to perform certain actions. Regardless of whether a user is the one running your application, the service principal's credentials will be used, and the user's credentials will not be used. To understand the different permissions involved when using Data Lake Analytics, see [Add a new user](https://docs.microsoft.com/azure/data-lake-analytics/data-lake-analytics-manage-use-portal#add-a-new-user).
-
-Here's a code snippet showing how your application can authenticate as a service principal that uses a secret key:
-
-```
 static void Main(string[] args)
 {
-  var armCreds = GetCredsServicePrincipalSecretKey(DOMAIN, armTokenAudience, NONINTERACTIVE_CLIENTID, NONINTERACTIVE_SECRETKEY);
-  var adlCreds = GetCredsServicePrincipalSecretKey(DOMAIN, adlTokenAudience, NONINTERACTIVE_CLIENTID, NONINTERACTIVE_SECRETKEY);
+  var armCreds = GetCredsServicePrincipalSecretKey(DOMAIN, ARM_TOKEN_AUDIENCE, NONINTERACTIVE_CLIENTID, NONINTERACTIVE_CERT);
+  var adlCreds = GetCredsServicePrincipalSecretKey(DOMAIN, ADL_TOKEN_AUDIENCE, NONINTERACTIVE_CLIENTID, NONINTERACTIVE_CERT);
 }
-```
-
 
 ```
-private static ServiceClientCredentials GetCredsServicePrincipalSecretKey(
-   string domain, 
-   Uri tokenAudience, 
-   string clientId, 
-   string secretKey)
-{
-  SynchronizationContext.SetSynchronizationContext(new SynchronizationContext());
 
-  var serviceSettings = ActiveDirectoryServiceSettings.Azure;
-  serviceSettings.TokenAudience = tokenAudience;
 
-  var creds = ApplicationTokenProvider.LoginSilentAsync(domain, clientId, secretKey, serviceSettings).GetAwaiter().GetResult();
-  return creds;
-}
-```
-
-Here's a code snippet showing how your application can authenticate as a service principal that uses a certificate:
-
-```
-static void Main(string[] args)
-{
-  var armCreds = GetCredsServicePrincipalSecretKey(domain, armTokenAudience, NONINTERACTIVE_CLIENTID, NONINTERACTIVE_CERT);
-  var adlCreds = GetCredsServicePrincipalSecretKey(domain, adlTokenAudience, NONINTERACTIVE_CLIENTID, NONINTERACTIVE_CERT);
-}
-```
-
-```
-private static ServiceClientCredentials GetCredsServicePrincipalCertificate(string domain, Uri tokenAudience, string clientId, X509Certificate2 certificate)
-{
-  SynchronizationContext.SetSynchronizationContext(new SynchronizationContext());
-
-  var clientAssertionCertificate = new ClientAssertionCertificate(clientId, certificate);
-  var serviceSettings = ActiveDirectoryServiceSettings.Azure;
-  serviceSettings.TokenAudience = tokenAudience;
-
-  var creds = ApplicationTokenProvider.LoginSilentWithCertificateAsync(domain, clientAssertionCertificate, serviceSettings).GetAwaiter().GetResult();
-  return creds;
-}
-```
 
 ## Setting up and using Data Lake SDKs
 Once your have followed one of the approaches for authentication, you're ready to set up your ADLA .NET SDK client objects, which you'll use to perform various actions with the service. Remember to use the right tokens/credentials with the right clients: use the ADL credentials for data plane operations, and use the ARM credentials for resource- and account-related operations.
@@ -279,6 +235,46 @@ private static ServiceClientCredentials GetCredsInteractivePopup(
    return creds;
 }
 ```
+
+### GetCredsServicePrincipalSecretKey
+
+```
+private static ServiceClientCredentials GetCredsServicePrincipalSecretKey(
+   string domain, 
+   Uri tokenAudience, 
+   string clientId, 
+   string secretKey)
+{
+  SynchronizationContext.SetSynchronizationContext(new SynchronizationContext());
+
+  var serviceSettings = ActiveDirectoryServiceSettings.Azure;
+  serviceSettings.TokenAudience = tokenAudience;
+
+  var creds = ApplicationTokenProvider.LoginSilentAsync(domain, clientId, secretKey, serviceSettings).GetAwaiter().GetResult();
+  return creds;
+}
+```
+### GetCredsServicePrincipalCertificate
+
+```
+private static ServiceClientCredentials GetCredsServicePrincipalCertificate(string domain, Uri tokenAudience, string clientId, X509Certificate2 certificate)
+{
+  SynchronizationContext.SetSynchronizationContext(new SynchronizationContext());
+
+  var clientAssertionCertificate = new ClientAssertionCertificate(clientId, certificate);
+  var serviceSettings = ActiveDirectoryServiceSettings.Azure;
+  serviceSettings.TokenAudience = tokenAudience;
+
+  var creds = ApplicationTokenProvider.LoginSilentWithCertificateAsync(domain, clientAssertionCertificate, serviceSettings).GetAwaiter().GetResult();
+  return creds;
+}
+```
+
+
+
+## For more information
+
+See  [Azure's .NET SDK for client authentication](https://www.nuget.org/packages/Microsoft.Rest.ClientRuntime.Azure.Authentication)
 
 
 ## Contributing
