@@ -63,14 +63,15 @@ All clients must have a "Client ID" that is known by the domain you are connecti
 public static Program
 {
    public static string TENANT = "microsoft.onmicrosoft.com";
+   public static string CLIENTID = "1950a258-227b-4e31-a9cf-717495945fc2";
    public static System.Uri ARM_TOKEN_AUDIENCE = new System.Uri( @"https://management.core.windows.net/");
    public static System.Uri ADL_TOKEN_AUDIENCE = new System.Uri( @"https://datalake.azure.net/" );
 
    static void Main(string[] args)
    {
       // preparation steps if needed
-      var armCreds = GetCreds_____(TENANT, ARM_TOKEN_AUDIENCE, SOME_CLIENT_ID, ... );
-      var adlCreds = GetCreds_____(TENANT, ADL_TOKEN_AUDIENCE, SOME_CLIENT_ID, ... );
+      var armCreds = GetCreds_____(TENANT, ARM_TOKEN_AUDIENCE, CLIENTID, ... );
+      var adlCreds = GetCreds_____(TENANT, ADL_TOKEN_AUDIENCE, CLIENTID, ... );
       // use the creds to create REST client objects
    }
 }
@@ -96,11 +97,10 @@ static void Main(string[] args)
 {
    string MY_DOCUMENTS= System.Environment.GetFolderPath( System.Environment.SpecialFolder.MyDocuments);
    string TOKEN_CACHE_PATH = System.IO.Path.Combine(MY_DOCUMENTS, "my.tokencache");
-   string INTERACTIVE_CLIENTID = "1950a258-227b-4e31-a9cf-717495945fc2";
 
    var tokenCache = GetTokenCache(TOKEN_CACHE_PATH);
-   var armCreds = GetCreds_User_Popup(TENANT, ARM_TOKEN_AUDIENCE, tokenCache);
-   var adlCreds = GetCreds_User_Popup(TENANT, ADL_TOKEN_AUDIENCE, tokenCache);
+   var armCreds = GetCreds_User_Popup(TENANT, ARM_TOKEN_AUDIENCE, CLIENTID, tokenCache);
+   var adlCreds = GetCreds_User_Popup(TENANT, ADL_TOKEN_AUDIENCE, CLIENTID, tokenCache);
    // use the creds to create REST client obkects
 }
 ```
@@ -128,23 +128,15 @@ Non-interactive - Service principal / application
 ## Service principals
 To create service principal [follow the steps in this article](https://docs.microsoft.com/en-us/azure/azure-resource-manager/resource-group-authenticate-service-principal).
 
-## Non-interactive client ids
-
-All non-interactive login options require a clientid
-
-```
-public static string NONINTERACTIVE_CLIENTID = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx";
-```
-
 ## Authenticate non-interactively with a secret key
 
 ```
 static void Main(string[] args)
 {
-  string NONINTERACTIVE_SECRETKEY = ".....";
+  string secret_key = ".....";
 
-  var armCreds = GetCreds_SPI_SecretKey(TENANT, ARM_TOKEN_AUDIENCE, NONINTERACTIVE_CLIENTID, NONINTERACTIVE_SECRETKEY);
-  var adlCreds = GGetCreds_SPI_SecretKey(TENANT, ADL_TOKEN_AUDIENCE, NONINTERACTIVE_CLIENTID, NONINTERACTIVE_SECRETKEY);
+  var armCreds = GetCreds_SPI_SecretKey(TENANT, ARM_TOKEN_AUDIENCE, CLIENTID, secret_key);
+  var adlCreds = GGetCreds_SPI_SecretKey(TENANT, ADL_TOKEN_AUDIENCE, CLIENTID, secret_key);
 }
 ```
 
@@ -153,10 +145,10 @@ static void Main(string[] args)
 ```
 static void Main(string[] args)
 {
-  var NONINTERACTIVE_CERT = new X509Certificate2(@"d:\cert.pfx", "<certpassword>");
+  var cert = new X509Certificate2(@"d:\cert.pfx", "<certpassword>");
 
-  var armCreds = GetCreds_SPI_Cert(TENANT, ARM_TOKEN_AUDIENCE, NONINTERACTIVE_CLIENTID, NONINTERACTIVE_CERT);
-  var adlCreds = GetCreds_SPI_Cert(TENANT, ADL_TOKEN_AUDIENCE, NONINTERACTIVE_CLIENTID, NONINTERACTIVE_CERT);
+  var armCreds = GetCreds_SPI_Cert(TENANT, ARM_TOKEN_AUDIENCE, CLIENTID, cert);
+  var adlCreds = GetCreds_SPI_Cert(TENANT, ADL_TOKEN_AUDIENCE, CLIENTID, cert);
 }
 ```
 
@@ -217,6 +209,7 @@ private static TokenCache GetTokenCache(string path)
 private static ServiceClientCredentials GetCreds_User_Popup(
    string tenant, 
    System.Uri tokenAudience, 
+   string clientId,
    TokenCache tokenCache, 
    PromptBehavior promptBehavior = PromptBehavior.Auto)
 {
@@ -224,7 +217,7 @@ private static ServiceClientCredentials GetCreds_User_Popup(
 
    var clientSettings = new ActiveDirectoryClientSettings
    {
-       ClientId = INTERACTIVE_CLIENTID,
+       ClientId = clientId,
        ClientRedirectUri = new System.Uri("urn:ietf:wg:oauth:2.0:oob"),
        PromptBehavior = promptBehavior
    };
