@@ -107,7 +107,7 @@ Azure Active Directory also supports a form of authentication called "device cod
 
 This is not supported yet.
 
-## Non-interactive - Service principal - Authentication
+# Non-interactive - Service principal - Authentication
 
 Use this option if you want to have your application authenticate against AAD using its own credentials, rather than those of a user. Using this process, your application will receive the tokens necessary to use the Data Lake Analytics .NET SDK as a service principal, 
 which represents your application in AAD.
