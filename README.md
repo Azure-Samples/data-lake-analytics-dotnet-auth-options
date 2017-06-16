@@ -54,6 +54,11 @@ These are the Azure REST endpoints (token audiences) that are used in the sample
 
 If your domain is "contoso.com". Then tenant is "contoso.onmicrosoft.com".
 
+#### Client ID
+
+All clients must have a "Client ID" that is known by the domain you are connecting to.
+
+#### Sample code
 ```
 public static Program
 {
@@ -86,18 +91,21 @@ Use this option if you want to have a browser popup appear when the user signs i
 The token cache minimizes the number of times the users sees a pop-up.
 
 ```
-public static string MY_DOCUMENTS= System.Environment.GetFolderPath( System.Environment.SpecialFolder.MyDocuments);
-public static string TOKEN_CACHE_PATH = System.IO.Path.Combine(MY_DOCUMENTS, "my.tokencache");
-public static string INTERACTIVE_CLIENTID = "1950a258-227b-4e31-a9cf-717495945fc2";
 
 static void Main(string[] args)
 {
+   string MY_DOCUMENTS= System.Environment.GetFolderPath( System.Environment.SpecialFolder.MyDocuments);
+   string TOKEN_CACHE_PATH = System.IO.Path.Combine(MY_DOCUMENTS, "my.tokencache");
+   string INTERACTIVE_CLIENTID = "1950a258-227b-4e31-a9cf-717495945fc2";
+
    var tokenCache = GetTokenCache(TOKEN_CACHE_PATH);
    var armCreds = GetCredsInteractivePopup(TENANT, ARM_TOKEN_AUDIENCE, tokenCache);
    var adlCreds = GetCredsInteractivePopup(TENANT, ADL_TOKEN_AUDIENCE, tokenCache);
    // use the creds to create REST client obkects
 }
 ```
+
+> NOTE: The client id used above is a well known that already exists for all azure services. While it makes the sample code easy to use, for production code you should use generate your own client ids for your application.
 
 > NOTE: The code above stores the token cache to the local machine in plaintext. We recommend writing and reading to a more secure format or location; you can use Data Protection APIs as a more secure approach. [See this blog post for more information](http://www.cloudidentity.com/blog/2014/07/09/the-new-token-cache-in-adal-v2/).
 
@@ -121,6 +129,7 @@ Non-interactive - Service principal / application
 To create service principal [follow the steps in this article](https://docs.microsoft.com/en-us/azure/azure-resource-manager/resource-group-authenticate-service-principal).
 
 ## Non-interactive client ids
+
 All non-interactive login options require a clientid
 
 ```
@@ -130,25 +139,24 @@ public static string NONINTERACTIVE_CLIENTID = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxx
 ## Authenticate non-interactively with a secret key
 
 ```
-public static string NONINTERACTIVE_SECRETKEY = ".....";
-
 static void Main(string[] args)
 {
-  var armCreds = GetCredsServicePrincipalSecretKey(TENANT, ARM_TOKEN_AUDIENCE, NONINTERACTIVE_CLIENTID, NONINTERACTIVE_SECRETKEY);
-  var adlCreds = GetCredsServicePrincipalSecretKey(TENANT, ADL_TOKEN_AUDIENCE, NONINTERACTIVE_CLIENTID, NONINTERACTIVE_SECRETKEY);
+  string NONINTERACTIVE_SECRETKEY = ".....";
+
+  var armCreds = GetCreds_SPI_SecretKey(TENANT, ARM_TOKEN_AUDIENCE, NONINTERACTIVE_CLIENTID, NONINTERACTIVE_SECRETKEY);
+  var adlCreds = GGetCreds_SPI_SecretKey(TENANT, ADL_TOKEN_AUDIENCE, NONINTERACTIVE_CLIENTID, NONINTERACTIVE_SECRETKEY);
 }
 ```
 
 ## Authenticate non-interactively with a certificate
 
 ```
-public static X509Certificate2 NONINTERACTIVE_CERT = 
-   new X509Certificate2(@"d:\cert.pfx", "<certpassword>");
-
 static void Main(string[] args)
 {
-  var armCreds = GetCredsServicePrincipalSecretKey(TENANT, ARM_TOKEN_AUDIENCE, NONINTERACTIVE_CLIENTID, NONINTERACTIVE_CERT);
-  var adlCreds = GetCredsServicePrincipalSecretKey(TENANT, ADL_TOKEN_AUDIENCE, NONINTERACTIVE_CLIENTID, NONINTERACTIVE_CERT);
+  var NONINTERACTIVE_CERT = new X509Certificate2(@"d:\cert.pfx", "<certpassword>");
+
+  var armCreds = GetCreds_SPI_Cert(TENANT, ARM_TOKEN_AUDIENCE, NONINTERACTIVE_CLIENTID, NONINTERACTIVE_CERT);
+  var adlCreds = GetCreds_SPI_Cert(TENANT, ADL_TOKEN_AUDIENCE, NONINTERACTIVE_CLIENTID, NONINTERACTIVE_CERT);
 }
 ```
 
