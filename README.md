@@ -99,21 +99,37 @@ static void Main(string[] args)
 }
 ```
 
+## Interactive - Device Code - Authentication  
+
+Azure Active Directory also supports a form of authentication called "device code" authentication. Using this, you can direct your end-user
+
+This is not supported yet.
+
 # Non-interactive login options
 
 Non-interactive - Service principal / application
  * Using a secret key
  * Using a certificate
 
-```
-// for non-interactive cases
-public static string NONINTERACTIVE_CLIENTID = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx";
-public static string NONINTERACTIVE_SECRETKEY = ".....";
-public static X509Certificate2 NONINTERACTIVE_CERT = 
-   new X509Certificate2(@"<path to (PFX) certificate file>", 
-   "<certificate password>");
+All non-interactive login options require a clientid
 
 ```
+public static string NONINTERACTIVE_CLIENTID = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx";
+```
+
+## Non-interactive secret key authentication
+
+```
+public static string NONINTERACTIVE_SECRETKEY = ".....";
+```
+
+## Non-interactive certifiate authentication
+
+'''
+public static X509Certificate2 NONINTERACTIVE_CERT = 
+   new X509Certificate2(@"d:\cert.pfx", "<certpassword>");
+'''
+
 
 ## For more information
 
@@ -123,9 +139,6 @@ See  [Azure's .NET SDK for client authentication](https://www.nuget.org/packages
 > NOTE: The code below stores the token cache to the local machine in plaintext. We recommend writing and reading to a more secure format or location; you can use Data Protection APIs as a more secure approach. [See this blog post for more information](http://www.cloudidentity.com/blog/2014/07/09/the-new-token-cache-in-adal-v2/).
 
 
-## Interactive - Device code - Authentication
-
-Azure Active Directory also supports a form of authentication called "device code" authentication. Using this, you can direct your end-user
 
 ## Non-interactive - Service principal / application - Authentication
 
