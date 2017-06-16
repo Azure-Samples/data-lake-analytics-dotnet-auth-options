@@ -66,12 +66,22 @@ Use this option if you want to have a browser popup appear when the user signs i
 
 
 ```
-public static string MY_DOCUMENTS= System.Environment.GetFolderPath( System.Environment.SpecialFolder.MyDocuments);
+// for all cases
 public static string DOMAIN = "microsoft.onmicrosoft.com";
 public static System.Uri ARM_TOKEN_AUDIENCE = new System.Uri( @"https://management.core.windows.net/");
 public static System.Uri ADL_TOKEN_AUDIENCE = new System.Uri( @"https://datalake.azure.net/" );
+
+// for interactive cases
+public static string MY_DOCUMENTS= System.Environment.GetFolderPath( System.Environment.SpecialFolder.MyDocuments);
 public static string TOKEN_CACHE_PATH = System.IO.Path.Combine(MY_DOCUMENTS, "my.tokencache");
 public static string INTERACTIVE_CLIENTID = "1950a258-227b-4e31-a9cf-717495945fc2";
+
+// for non-interactive cases
+public static string NONINTERACTIVE_CLIENTID = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx";
+public static string NONINTERACTIVE_SECRETKEY = ".....";
+public static X509Certificate2 NONINTERACTIVE_CERT = 
+   new X509Certificate2(@"<path to (PFX) certificate file>", 
+   "<certificate password>");
 
 ```
 
@@ -161,62 +171,55 @@ The service principal, just like a user, will need to have appropriate permissio
 
 Here's a code snippet showing how your application can authenticate as a service principal that uses a secret key:
 
-    ...
-    
-    static void Main(string[] args)
-    {
-        string domain = "<AAD tenant ID / domain>";
-        Uri armTokenAudience = new Uri(@"https://management.core.windows.net/");
-        Uri adlTokenAudience = new Uri(@"https://datalake.azure.net/");
-        
-        string clientId = "<service principal / application client ID>";
-        string secretKey = "<service principal / application secret key>";
+```
+static void Main(string[] args)
+{
+  var armCreds = GetCredsServicePrincipalSecretKey(DOMAIN, armTokenAudience, NONINTERACTIVE_CLIENTID, NONINTERACTIVE_SECRETKEY);
+  var adlCreds = GetCredsServicePrincipalSecretKey(DOMAIN, adlTokenAudience, NONINTERACTIVE_CLIENTID, NONINTERACTIVE_SECRETKEY);
+}
+```
 
-        ServiceClientCredentials armCreds = GetCredsServicePrincipalSecretKey(domain, armTokenAudience, clientId, secretKey);
-        ServiceClientCredentials adlCreds = GetCredsServicePrincipalSecretKey(domain, adlTokenAudience, clientId, secretKey);
-    }
-    
-    private static ServiceClientCredentials GetCredsServicePrincipalSecretKey(string domain, Uri tokenAudience, string clientId, string secretKey)
-    {
-        SynchronizationContext.SetSynchronizationContext(new SynchronizationContext());
 
-        var serviceSettings = ActiveDirectoryServiceSettings.Azure;
-        serviceSettings.TokenAudience = tokenAudience;
+```
+private static ServiceClientCredentials GetCredsServicePrincipalSecretKey(
+   string domain, 
+   Uri tokenAudience, 
+   string clientId, 
+   string secretKey)
+{
+  SynchronizationContext.SetSynchronizationContext(new SynchronizationContext());
 
-        var creds = ApplicationTokenProvider.LoginSilentAsync(domain, clientId, secretKey, serviceSettings).GetAwaiter().GetResult();
+  var serviceSettings = ActiveDirectoryServiceSettings.Azure;
+  serviceSettings.TokenAudience = tokenAudience;
 
-        return creds;
-    }
+  var creds = ApplicationTokenProvider.LoginSilentAsync(domain, clientId, secretKey, serviceSettings).GetAwaiter().GetResult();
+  return creds;
+}
+```
 
 Here's a code snippet showing how your application can authenticate as a service principal that uses a certificate:
 
-    ...
-    
-    static void Main(string[] args)
-    {
-        string domain = "<AAD tenant ID / domain>";
-        Uri armTokenAudience = new Uri(@"https://management.core.windows.net/");
-        Uri adlTokenAudience = new Uri(@"https://datalake.azure.net/");
-        
-        string clientId = "<service principal / application client ID>";
-        X509Certificate2 certificate = new X509Certificate2(@"<path to (PFX) certificate file>", "<certificate password>");
+```
+static void Main(string[] args)
+{
+  var armCreds = GetCredsServicePrincipalSecretKey(domain, armTokenAudience, NONINTERACTIVE_CLIENTID, NONINTERACTIVE_CERT);
+  var adlCreds = GetCredsServicePrincipalSecretKey(domain, adlTokenAudience, NONINTERACTIVE_CLIENTID, NONINTERACTIVE_CERT);
+}
+```
 
-        ServiceClientCredentials armCreds = GetCredsServicePrincipalSecretKey(domain, armTokenAudience, clientId, secretKey);
-        ServiceClientCredentials adlCreds = GetCredsServicePrincipalSecretKey(domain, adlTokenAudience, clientId, secretKey);
-    }
-    
-    private static ServiceClientCredentials GetCredsServicePrincipalCertificate(string domain, Uri tokenAudience, string clientId, X509Certificate2 certificate)
-    {
-        SynchronizationContext.SetSynchronizationContext(new SynchronizationContext());
+```
+private static ServiceClientCredentials GetCredsServicePrincipalCertificate(string domain, Uri tokenAudience, string clientId, X509Certificate2 certificate)
+{
+  SynchronizationContext.SetSynchronizationContext(new SynchronizationContext());
 
-        var clientAssertionCertificate = new ClientAssertionCertificate(clientId, certificate);
-        var serviceSettings = ActiveDirectoryServiceSettings.Azure;
-        serviceSettings.TokenAudience = tokenAudience;
+  var clientAssertionCertificate = new ClientAssertionCertificate(clientId, certificate);
+  var serviceSettings = ActiveDirectoryServiceSettings.Azure;
+  serviceSettings.TokenAudience = tokenAudience;
 
-        var creds = ApplicationTokenProvider.LoginSilentWithCertificateAsync(domain, clientAssertionCertificate, serviceSettings).GetAwaiter().GetResult();
-
-        return creds;
-    }
+  var creds = ApplicationTokenProvider.LoginSilentWithCertificateAsync(domain, clientAssertionCertificate, serviceSettings).GetAwaiter().GetResult();
+  return creds;
+}
+```
 
 ## Setting up and using Data Lake SDKs
 Once your have followed one of the approaches for authentication, you're ready to set up your ADLA .NET SDK client objects, which you'll use to perform various actions with the service. Remember to use the right tokens/credentials with the right clients: use the ADL credentials for data plane operations, and use the ARM credentials for resource- and account-related operations.
