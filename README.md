@@ -61,8 +61,8 @@ public static Program
    static void Main(string[] args)
    {
       // some preparation steps if needed
-      var armCreds = GetCreds_____(DOMAIN, ARM_TOKEN_AUDIENCE, ... );
-      var adlCreds = GetCreds_____(DOMAIN, ADL_TOKEN_AUDIENCE, ... );
+      var armCreds = GetCreds_____(DOMAIN, ARM_TOKEN_AUDIENCE, SOME_CLIENT_ID, ... );
+      var adlCreds = GetCreds_____(DOMAIN, ADL_TOKEN_AUDIENCE, SOME_CLIENT_ID, ... );
       // use the creds to create REST client obkects
    }
 }
