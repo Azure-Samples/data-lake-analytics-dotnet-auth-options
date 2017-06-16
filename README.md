@@ -223,10 +223,14 @@ You can then perform actions using the clients, like so:
         
         ...
         
-        DataLakeAnalyticsJobManagementClient adlaJobClient = new DataLakeAnalyticsJobManagementClient(adlCreds);
-        DataLakeAnalyticsCatalogManagementClient adlaCatalogClient = new DataLakeAnalyticsCatalogManagementClient(adlCreds);
         DataLakeAnalyticsAccountManagementClient adlaAccountClient = new DataLakeAnalyticsAccountManagementClient(armCreds);
         adlaAccountClient.SubscriptionId = subscriptionId;
+        DataLakeStoreAccountManagementClient adlsAccountClient = new DataLakeStoreAccountManagementClient(armCreds);
+        adlsAccountClient.SubscriptionId = subscriptionId;
+
+        DataLakeAnalyticsCatalogManagementClient adlaCatalogClient = new DataLakeAnalyticsCatalogManagementClient(adlCreds);
+        DataLakeAnalyticsJobManagementClient adlaJobClient = new DataLakeAnalyticsJobManagementClient(adlCreds);
+        DataLakeStoreFileSystemManagementClient adlsFileSystemClient = new DataLakeStoreFileSystemManagementClient(adlCreds);
         
         DataLakeAnalyticsAccount account = adlaAccountClient.Account.Get(resourceGroupName, adlaAccountName);
         
