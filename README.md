@@ -42,13 +42,13 @@ using Microsoft.IdentityModel.Clients.ActiveDirectory;
 ```
 
 
-## Interactive Login options
+# Interactive Login options
 
 There are two ways to use interactive login:
 * Interactive **Pop-up** - The device the user is using will see a prompt appear and will use that prompt.
 * Interactive **Device code** - The device the user is using will NOT see a prompt. This is useful in those cases when, for example, it is not possible to show a prompt. This document does not cover this case yet.
 
-## Non-interactive login options
+# Non-interactive login options
 
 Non-interactive - Service principal / application
  * Using a secret key
