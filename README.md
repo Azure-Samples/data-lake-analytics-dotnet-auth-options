@@ -79,9 +79,6 @@ There are two ways to use interactive login:
 ## Interactive - User popup - Authentication  
 Use this option if you want to have a browser popup appear when the user signs in to your application, showing an AAD login form. From this interactive popup, your application will receive the tokens necessary to use the Data Lake Analytics .NET SDK on behalf of the user.
 
-   ![Interactive - User popup](./media/auth_popup.png)
-
-
 The token cache minimizes the number of times the users sees a pop-up.
 
 ```
