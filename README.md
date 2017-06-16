@@ -42,49 +42,6 @@ using Microsoft.IdentityModel.Clients.ActiveDirectory;
 ```
 
 
-# Interactive Login options
-
-There are two ways to use interactive login:
-* Interactive **Pop-up** - The device the user is using will see a prompt appear and will use that prompt.
-* Interactive **Device code** - The device the user is using will NOT see a prompt. This is useful in those cases when, for example, it is not possible to show a prompt. This document does not cover this case yet.
-
-# Non-interactive login options
-
-Non-interactive - Service principal / application
- * Using a secret key
- * Using a certificate
-
-## For more information
-
-See  [Azure's .NET SDK for client authentication](https://www.nuget.org/packages/Microsoft.Rest.ClientRuntime.Azure.Authentication)
-
-## Interactive - User popup - Authentication  
-Use this option if you want to have a browser popup appear when the user signs in to your application, showing an AAD login form. From this interactive popup, your application will receive the tokens necessary to use the Data Lake Analytics .NET SDK on behalf of the user.
-
-   ![Interactive - User popup](./media/auth_popup.png)
-
-
-
-```
-// for all cases
-public static string DOMAIN = "microsoft.onmicrosoft.com";
-public static System.Uri ARM_TOKEN_AUDIENCE = new System.Uri( @"https://management.core.windows.net/");
-public static System.Uri ADL_TOKEN_AUDIENCE = new System.Uri( @"https://datalake.azure.net/" );
-
-// for interactive cases
-public static string MY_DOCUMENTS= System.Environment.GetFolderPath( System.Environment.SpecialFolder.MyDocuments);
-public static string TOKEN_CACHE_PATH = System.IO.Path.Combine(MY_DOCUMENTS, "my.tokencache");
-public static string INTERACTIVE_CLIENTID = "1950a258-227b-4e31-a9cf-717495945fc2";
-
-// for non-interactive cases
-public static string NONINTERACTIVE_CLIENTID = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx";
-public static string NONINTERACTIVE_SECRETKEY = ".....";
-public static X509Certificate2 NONINTERACTIVE_CERT = 
-   new X509Certificate2(@"<path to (PFX) certificate file>", 
-   "<certificate password>");
-
-```
-
 ## Basic flow
 
 Your code needs to get credentials (tokens) for each end Azure REST endpoint (token audience) that you intend to use.
@@ -95,64 +52,73 @@ These are the Azure REST endpoints (token audiences):
 * Data plane operations: ``https://datalake.azure.net/``.
 
 ```
+public static Program
+{
+   public static string DOMAIN = "microsoft.onmicrosoft.com";
+   public static System.Uri ARM_TOKEN_AUDIENCE = new System.Uri( @"https://management.core.windows.net/");
+   public static System.Uri ADL_TOKEN_AUDIENCE = new System.Uri( @"https://datalake.azure.net/" );
+
+   static void Main(string[] args)
+   {
+      // some preparation steps
+      var armCreds = GetCredsInteractivePopup(DOMAIN, ARM_TOKEN_AUDIENCE, tokenCache);
+      var adlCreds = GetCredsInteractivePopup(DOMAIN, ADL_TOKEN_AUDIENCE, tokenCache);
+      // use the creds to create REST client obkects
+   }
+}
+```
+
+# Interactive Login options
+
+There are two ways to use interactive login:
+* Interactive **Pop-up** - The device the user is using will see a prompt appear and will use that prompt.
+* Interactive **Device code** - The device the user is using will NOT see a prompt. This is useful in those cases when, for example, it is not possible to show a prompt. This document does not cover this case yet.
+
+
+
+## Interactive - User popup - Authentication  
+Use this option if you want to have a browser popup appear when the user signs in to your application, showing an AAD login form. From this interactive popup, your application will receive the tokens necessary to use the Data Lake Analytics .NET SDK on behalf of the user.
+
+   ![Interactive - User popup](./media/auth_popup.png)
+
+
+The token cache minimizes the number of times the users sees a pop-up.
+
+```
+// for interactive cases
+public static string MY_DOCUMENTS= System.Environment.GetFolderPath( System.Environment.SpecialFolder.MyDocuments);
+public static string TOKEN_CACHE_PATH = System.IO.Path.Combine(MY_DOCUMENTS, "my.tokencache");
+public static string INTERACTIVE_CLIENTID = "1950a258-227b-4e31-a9cf-717495945fc2";
+
 static void Main(string[] args)
 {
    var tokenCache = GetTokenCache(TOKEN_CACHE_PATH);
    var armCreds = GetCredsInteractivePopup(DOMAIN, ARM_TOKEN_AUDIENCE, tokenCache);
    var adlCreds = GetCredsInteractivePopup(DOMAIN, ADL_TOKEN_AUDIENCE, tokenCache);
+   // use the creds to create REST client obkects
 }
 ```
 
-The token cache minimizes the number of times the users sees a pop-up.
+# Non-interactive login options
+
+Non-interactive - Service principal / application
+ * Using a secret key
+ * Using a certificate
 
 ```
-private static TokenCache GetTokenCache(string path)
-{
-   var tokenCache = new TokenCache();
-
-   tokenCache.BeforeAccess += notificationArgs =>
-   {
-       if (File.Exists(path))
-       {
-           var bytes = File.ReadAllBytes(path);
-           notificationArgs.TokenCache.Deserialize(bytes);
-       }
-   };
-
-   tokenCache.AfterAccess += notificationArgs =>
-   {
-       var bytes = notificationArgs.TokenCache.Serialize();
-       File.WriteAllBytes(path, bytes);
-   };
-   return tokenCache;
-}
-```
-
-Once the token cache is created, you can fetch credentials for each endpoint.
+// for non-interactive cases
+public static string NONINTERACTIVE_CLIENTID = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx";
+public static string NONINTERACTIVE_SECRETKEY = ".....";
+public static X509Certificate2 NONINTERACTIVE_CERT = 
+   new X509Certificate2(@"<path to (PFX) certificate file>", 
+   "<certificate password>");
 
 ```
-private static ServiceClientCredentials GetCredsInteractivePopup(
-   string domain, 
-   System.Uri tokenAudience, 
-   TokenCache tokenCache, 
-   PromptBehavior promptBehavior = PromptBehavior.Auto)
-{
-   SynchronizationContext.SetSynchronizationContext(new SynchronizationContext());
 
-   var clientSettings = new ActiveDirectoryClientSettings
-   {
-       ClientId = INTERACTIVE_CLIENTID,
-       ClientRedirectUri = new System.Uri("urn:ietf:wg:oauth:2.0:oob"),
-       PromptBehavior = promptBehavior
-   };
+## For more information
 
-   var serviceSettings = ActiveDirectoryServiceSettings.Azure;
-   serviceSettings.TokenAudience = tokenAudience;
+See  [Azure's .NET SDK for client authentication](https://www.nuget.org/packages/Microsoft.Rest.ClientRuntime.Azure.Authentication)
 
-   var creds = UserTokenProvider.LoginWithPromptAsync(domain, clientSettings, serviceSettings, tokenCache).GetAwaiter().GetResult();
-   return creds;
-}
-```
 
 > NOTE: The code below stores the token cache to the local machine in plaintext. We recommend writing and reading to a more secure format or location; you can use Data Protection APIs as a more secure approach. [See this blog post for more information](http://www.cloudidentity.com/blog/2014/07/09/the-new-token-cache-in-adal-v2/).
 
@@ -226,27 +192,81 @@ Once your have followed one of the approaches for authentication, you're ready t
 
 You can then perform actions using the clients, like so:
 
-    static void Main(string[] args)
-    {
-        string adlaAccountName = "<ADLA account name>";
-        string resourceGroupName = "<resource group name>";
-        string subscriptionId = "<subscription ID>";
-        
-        ...
-        
-        var adlaAccountClient = new DataLakeAnalyticsAccountManagementClient(armCreds);
-        adlaAccountClient.SubscriptionId = subscriptionId;
-        var adlsAccountClient = new DataLakeStoreAccountManagementClient(armCreds);
-        adlsAccountClient.SubscriptionId = subscriptionId;
+```
+static void Main(string[] args)
+{
+  string adlaAccountName = "<ADLA account name>";
+  string resourceGroupName = "<resource group name>";
+  string subscriptionId = "<subscription ID>";
 
-        var adlaCatalogClient = new DataLakeAnalyticsCatalogManagementClient(adlCreds);
-        var adlaJobClient = new DataLakeAnalyticsJobManagementClient(adlCreds);
-        var adlsFileSystemClient = new DataLakeStoreFileSystemManagementClient(adlCreds);
-        
-        var account = adlaAccountClient.Account.Get(resourceGroupName, adlaAccountName);
-        
-        Console.WriteLine($"My account's location is: {account.Location}!");
-    }
+  ...
+
+  var adlaAccountClient = new DataLakeAnalyticsAccountManagementClient(armCreds);
+  adlaAccountClient.SubscriptionId = subscriptionId;
+  var adlsAccountClient = new DataLakeStoreAccountManagementClient(armCreds);
+  adlsAccountClient.SubscriptionId = subscriptionId;
+
+  var adlaCatalogClient = new DataLakeAnalyticsCatalogManagementClient(adlCreds);
+  var adlaJobClient = new DataLakeAnalyticsJobManagementClient(adlCreds);
+  var adlsFileSystemClient = new DataLakeStoreFileSystemManagementClient(adlCreds);
+
+  var account = adlaAccountClient.Account.Get(resourceGroupName, adlaAccountName);
+
+  Console.WriteLine($"My account's location is: {account.Location}!");
+}
+```
+
+## Helper functions
+
+### GetTokenCache
+```
+private static TokenCache GetTokenCache(string path)
+{
+   var tokenCache = new TokenCache();
+
+   tokenCache.BeforeAccess += notificationArgs =>
+   {
+       if (File.Exists(path))
+       {
+           var bytes = File.ReadAllBytes(path);
+           notificationArgs.TokenCache.Deserialize(bytes);
+       }
+   };
+
+   tokenCache.AfterAccess += notificationArgs =>
+   {
+       var bytes = notificationArgs.TokenCache.Serialize();
+       File.WriteAllBytes(path, bytes);
+   };
+   return tokenCache;
+}
+```
+
+### GetCredsInteractivePopup
+```
+private static ServiceClientCredentials GetCredsInteractivePopup(
+   string domain, 
+   System.Uri tokenAudience, 
+   TokenCache tokenCache, 
+   PromptBehavior promptBehavior = PromptBehavior.Auto)
+{
+   SynchronizationContext.SetSynchronizationContext(new SynchronizationContext());
+
+   var clientSettings = new ActiveDirectoryClientSettings
+   {
+       ClientId = INTERACTIVE_CLIENTID,
+       ClientRedirectUri = new System.Uri("urn:ietf:wg:oauth:2.0:oob"),
+       PromptBehavior = promptBehavior
+   };
+
+   var serviceSettings = ActiveDirectoryServiceSettings.Azure;
+   serviceSettings.TokenAudience = tokenAudience;
+
+   var creds = UserTokenProvider.LoginWithPromptAsync(domain, clientSettings, serviceSettings, tokenCache).GetAwaiter().GetResult();
+   return creds;
+}
+```
+
 
 ## Contributing
 
