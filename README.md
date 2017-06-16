@@ -59,7 +59,7 @@ Ultimately, no matter which variety of interactive or non-interactive authentica
 We mentioned you will get use multiple tokens. Specifically you will get one token per API endpoint. Each endpoint is called a "token audience".
 
 The following are the token audiences:
-* Azure Resource Manager (ARM) token audience: ``https://management.core.windows.net/``. 
+* Azure Resource Manager operations: ``https://management.core.windows.net/``. 
 * Data plane operations: ``https://datalake.azure.net/``.
 
 ## Authenticating against Azure Active Directory
