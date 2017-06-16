@@ -18,6 +18,7 @@ See [our published sample .NET code](https://azure.microsoft.com/en-us/resources
 You will need some or all of the following namespaces included at the top of your class file:
 
     using System;
+    using System.IO;
     using System.Threading;
     using System.Security.Cryptography.X509Certificates;
 
@@ -55,7 +56,7 @@ Here's a code snippet showing how to sign in your user:
         ServiceClientCredentials adlCreds = GetCredsInteractivePopup(DOMAIN, ADL_TOKEN_AUDIENCE);
     }
     
-    public static ServiceClientCredentials GetCredsInteractivePopup(string domain, string tokenAudience, PromptBehavior promptBehavior = PromptBehavior.Auto)
+    private static ServiceClientCredentials GetCredsInteractivePopup(string domain, string tokenAudience, PromptBehavior promptBehavior = PromptBehavior.Auto)
     {
         SynchronizationContext.SetSynchronizationContext(new SynchronizationContext());
 
@@ -73,9 +74,12 @@ Here's a code snippet showing how to sign in your user:
 
         return creds;
     }
+    
+### Interactive - Device code
+Azure Active Directory also supports a form of authentication called "device code" authentication. Using this, you can direct your end-user
 
 #### Caching the user's login session
-The basic case for the user popup approach is that the end-user will log in each time the application is run. Often for convenience, application developers choose to allow their users to sign in once and have the application keep track of the session, even after closing and reopening the application. To do this with [Azure's .NET SDK for client authentication](https://www.nuget.org/packages/Microsoft.Rest.ClientRuntime.Azure.Authentication), you'll need to use a token cache.
+Unless you store the login session after your user logs in, and load it when your application initializes, your user will log in each time the application is run. For convenience, you can choose to allow the user to sign in once, and store the session locally for reuse. To do this with [Azure's .NET SDK for client authentication](https://www.nuget.org/packages/Microsoft.Rest.ClientRuntime.Azure.Authentication), you'll need to use a token cache.
 
 A token cache is an object that stores tokens for retrieval by your application. This object can be saved to a file, and it can be loaded from a file when your application initializes. If the user's token is available and still valid, the user popup won't need to be shown. Here's a code snippet showing how to load and use a ``TokenCache``:
 
@@ -87,13 +91,15 @@ A token cache is an object that stores tokens for retrieval by your application.
         Uri armTokenAudience = new Uri(@"https://management.core.windows.net/");
         Uri adlTokenAudience = new Uri(@"https://datalake.azure.net/");
         
-        // Show how to load the tokenCache into memory
+        TokenCache tokenCache = new TokenCache();
+        tokenCache.BeforeAccess = BeforeTokenCacheAccess;
+        tokenCache.AfterAccess = AfterTokenCacheAccess;
 
         ServiceClientCredentials armCreds = GetCredsInteractivePopup(domain, armTokenAudience, tokenCache);
         ServiceClientCredentials adlCreds = GetCredsInteractivePopup(domain, adlTokenAudience, tokenCache);
     }
     
-    public static ServiceClientCredentials GetCredsInteractivePopup(string domain, Uri tokenAudience, TokenCache tokenCache, PromptBehavior promptBehavior = PromptBehavior.Auto)
+    private static ServiceClientCredentials GetCredsInteractivePopup(string domain, Uri tokenAudience, TokenCache tokenCache, PromptBehavior promptBehavior = PromptBehavior.Auto)
     {
         SynchronizationContext.SetSynchronizationContext(new SynchronizationContext());
 
@@ -110,6 +116,29 @@ A token cache is an object that stores tokens for retrieval by your application.
         ServiceClientCredentials creds = UserTokenProvider.LoginWithPromptAsync(domain, clientSettings, serviceSettings, tokenCache).GetAwaiter().GetResult();
 
         return creds;
+    }
+    
+    private static void BeforeTokenCacheAccess(TokenCacheNotificationArgs args)
+    {
+        // NOTE: We recommend that you do NOT store the token cache in plain text -- don't use the code below as-is.
+        //       Here's one example of a way to store the token cache in a slightly more secure way, using Data Protection APIs:
+        //         http://www.cloudidentity.com/blog/2014/07/09/the-new-token-cache-in-adal-v2/
+        
+        string tokenCachePath = @"<path to token cache file>";
+
+        if (File.Exists(tokenCachePath))
+            args.TokenCache.Deserialize(File.ReadAllBytes(tokenCachePath));
+    }
+
+    private static void AfterTokenCacheAccess(TokenCacheNotificationArgs args)
+    {
+        // NOTE: We recommend that you do NOT store the token cache in plain text -- don't use the code below as-is.
+        //       Here's one example of a way to store the token cache in a slightly more secure way, using Data Protection APIs:
+        //         http://www.cloudidentity.com/blog/2014/07/09/the-new-token-cache-in-adal-v2/
+        
+        string tokenCachePath = @"<path to token cache file>";
+
+        File.WriteAllBytes(tokenCachePath, args.TokenCache.Serialize());
     }
 
 ### Non-interactive - Service principal / application
@@ -137,7 +166,7 @@ Here's a code snippet showing how your application can authenticate as a service
         ServiceClientCredentials adlCreds = GetCredsServicePrincipalSecretKey(domain, adlTokenAudience, clientId, secretKey);
     }
     
-    public static ServiceClientCredentials GetCredsServicePrincipalSecretKey(string domain, Uri tokenAudience, string clientId, string secretKey)
+    private static ServiceClientCredentials GetCredsServicePrincipalSecretKey(string domain, Uri tokenAudience, string clientId, string secretKey)
     {
         SynchronizationContext.SetSynchronizationContext(new SynchronizationContext());
 
@@ -166,7 +195,7 @@ Here's a code snippet showing how your application can authenticate as a service
         ServiceClientCredentials adlCreds = GetCredsServicePrincipalSecretKey(domain, adlTokenAudience, clientId, secretKey);
     }
     
-    public static ServiceClientCredentials GetCredsServicePrincipalCertificate(string domain, Uri tokenAudience, string clientId, X509Certificate2 certificate)
+    private static ServiceClientCredentials GetCredsServicePrincipalCertificate(string domain, Uri tokenAudience, string clientId, X509Certificate2 certificate)
     {
         SynchronizationContext.SetSynchronizationContext(new SynchronizationContext());
 
@@ -186,6 +215,10 @@ You can then perform actions using the clients, like so:
 
     static void Main(string[] args)
     {
+        string adlaAccountName = "<ADLA account name>";
+        string resourceGroupName = "<resource group name>";
+        string subscriptionId = "<subscription ID>";
+        
         ...
         
         DataLakeAnalyticsJobManagementClient adlaJobClient = new DataLakeAnalyticsJobManagementClient(adlCreds);
