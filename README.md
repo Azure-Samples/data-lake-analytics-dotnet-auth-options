@@ -14,7 +14,7 @@ There are two fundamental ways to have your application sign-in:
 * [Microsoft.Azure.Management.DataLake.Store](https://www.nuget.org/packages/Microsoft.Azure.Management.DataLake.Store) - v2.2.0
 * [Microsoft.Azure.Management.ResourceManager](https://www.nuget.org/packages/Microsoft.Azure.Management.ResourceManager) - 1.6.0-preview
 
-You can install these packages via the NuGet commane line with the following commands:
+You can install these packages via the NuGet command line with the following commands:
 
 ```
 Install-Package -Id Microsoft.Rest.ClientRuntime.Azure.Authentication  -Version 2.3.1
