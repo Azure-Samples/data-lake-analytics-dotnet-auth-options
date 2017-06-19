@@ -54,7 +54,7 @@ These are the Azure REST endpoints (token audiences) that are used in the sample
 
 #### Domains and Tenant
 
-If your domain is "contoso.com". Then tenant is "contoso.onmicrosoft.com".
+You can retrieve your AAD domain / tenant ID by going to the [Azure portal](https://portal.azure.com/) and clicking 'Azure Active Directory'. An example domain is "contoso.onmicrosoft.com".
 
 #### Client ID
 
@@ -64,7 +64,7 @@ All clients must have a "Client ID" that is known by the domain you are connecti
 ```
 public static Program
 {
-   public static string TENANT = "microsoft.onmicrosoft.com";
+   public static string TENANT = "contoso.onmicrosoft.com";
    public static string CLIENTID = "1950a258-227b-4e31-a9cf-717495945fc2";
    public static System.Uri ARM_TOKEN_AUDIENCE = new System.Uri( @"https://management.core.windows.net/");
    public static System.Uri ADL_TOKEN_AUDIENCE = new System.Uri( @"https://datalake.azure.net/" );
