@@ -5,11 +5,12 @@ using System.Security.Cryptography.X509Certificates;
 
 using Microsoft.Rest;
 using Microsoft.Rest.Azure.Authentication;
+using Microsoft.IdentityModel.Clients.ActiveDirectory;
 using Microsoft.Azure.Management.DataLake.Analytics;
 using Microsoft.Azure.Management.DataLake.Analytics.Models;
 using Microsoft.Azure.Management.DataLake.Store;
 using Microsoft.Azure.Management.DataLake.Store.Models;
-using Microsoft.IdentityModel.Clients.ActiveDirectory;
+using Microsoft.Azure.Graph.RBAC;
 
 namespace AdlaAuthSamples
 {
@@ -26,6 +27,7 @@ namespace AdlaAuthSamples
             string domain = "<AAD tenant ID / domain>";
             Uri armTokenAudience = new Uri(@"https://management.core.windows.net/");
             Uri adlTokenAudience = new Uri(@"https://datalake.azure.net/");
+            Uri aadTokenAudience = new Uri(@"https://graph.azure.net/");
 
             string clientId = "<service principal / application client ID>";
             string secretKey = "<service principal / application secret key>";
@@ -37,15 +39,19 @@ namespace AdlaAuthSamples
 
             ServiceClientCredentials armCreds = GetCredsInteractivePopup(domain, armTokenAudience, PromptBehavior.Always);
             ServiceClientCredentials adlCreds = GetCredsInteractivePopup(domain, adlTokenAudience, PromptBehavior.Always);
+            ServiceClientCredentials aadCreds = GetCredsInteractivePopup(domain, aadTokenAudience, PromptBehavior.Always);
 
             //ServiceClientCredentials armCreds = GetCredsInteractivePopup(domain, armTokenAudience, tokenCache, PromptBehavior.Always);
             //ServiceClientCredentials adlCreds = GetCredsInteractivePopup(domain, adlTokenAudience, tokenCache, PromptBehavior.Always);
+            //ServiceClientCredentials aadCreds = GetCredsInteractivePopup(domain, aadTokenAudience, tokenCache, PromptBehavior.Always);
 
             //ServiceClientCredentials armCreds = GetCredsServicePrincipalSecretKey(domain, armTokenAudience, clientId, secretKey);
             //ServiceClientCredentials adlCreds = GetCredsServicePrincipalSecretKey(domain, adlTokenAudience, clientId, secretKey);
+            //ServiceClientCredentials aadCreds = GetCredsServicePrincipalSecretKey(domain, aadTokenAudience, clientId, secretKey);
 
             //ServiceClientCredentials armCreds = GetCredsServicePrincipalCertificate(domain, armTokenAudience, clientId, certificate);
             //ServiceClientCredentials adlCreds = GetCredsServicePrincipalCertificate(domain, adlTokenAudience, clientId, certificate);
+            //ServiceClientCredentials aadCreds = GetCredsServicePrincipalCertificate(domain, aadTokenAudience, clientId, certificate);
 
             DataLakeAnalyticsAccountManagementClient adlaAccountClient = new DataLakeAnalyticsAccountManagementClient(armCreds);
             adlaAccountClient.SubscriptionId = subscriptionId;
@@ -56,8 +62,15 @@ namespace AdlaAuthSamples
             DataLakeAnalyticsJobManagementClient adlaJobClient = new DataLakeAnalyticsJobManagementClient(adlCreds);
             DataLakeStoreFileSystemManagementClient adlsFileSystemClient = new DataLakeStoreFileSystemManagementClient(adlCreds);
 
+            GraphRbacManagementClient graphClient = new GraphRbacManagementClient(aadCreds);
+            graphClient.TenantID = domain;
+
             DataLakeAnalyticsAccount account = adlaAccountClient.Account.Get(resourceGroupName, adlaAccountName);
             Console.WriteLine($"My account's location is: {account.Location}!");
+
+            // string upn = "tim@contoso.com";
+            // string displayName = graphClient.Users.Get(upn).DisplayName;
+            // Console.WriteLine($"The display name for {upn} is {displayName}!");
 
             Console.ReadLine();
         }
