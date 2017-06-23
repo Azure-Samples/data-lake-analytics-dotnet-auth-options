@@ -27,7 +27,7 @@ namespace AdlaAuthSamples
             string domain = "<AAD tenant ID / domain>";
             Uri armTokenAudience = new Uri(@"https://management.core.windows.net/");
             Uri adlTokenAudience = new Uri(@"https://datalake.azure.net/");
-            Uri aadTokenAudience = new Uri(@"https://graph.azure.net/");
+            Uri aadTokenAudience = new Uri(@"https://graph.windows.net/");
 
             string clientId = "<service principal / application client ID>";
             string secretKey = "<service principal / application secret key>";
