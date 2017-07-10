@@ -10,6 +10,7 @@ author: matt1883
 When building an application that uses the .NET SDK for Data Lake Analytics (ADLA), you need to pick how your application will sign in to Azure Active Directory (AAD). 
 
 There are two fundamental ways to have your application sign-in:
+
 * **Interactive** - Use this method when your application has a user directly using your application and your app needs to perform operations in the context of that user.
 * **Non-interactive** - Thus this method when your application is not meant to interact with ADLA as a specific user. This is useful for long-running services.
 
@@ -55,6 +56,7 @@ For a given domain (tenant). Your code needs to get credentials (tokens) for eac
 
 #### Token Audiences
 These are the Azure REST endpoints (token audiences) that are used in the samples:
+
 * Azure Resource Manager operations: ``https://management.core.windows.net/``. 
 * Data plane operations: ``https://datalake.azure.net/``.
 
@@ -90,6 +92,7 @@ The `GetCreds_____` represents one of four different helper methods used in the 
 # Interactive Login options
 
 There are two ways to use interactive login:
+
 * **Interactive Pop-up** - The device the user is using will see a prompt appear and will use that prompt.
 * **Interactive Device code** - The device the user is using will NOT see a prompt. This is useful in those cases when, for example, it is not possible to show a prompt. This document does not cover this case yet.
 
@@ -130,6 +133,7 @@ Use this option if you want to have your application authenticate against AAD us
 which represents your application in AAD.
 
 Non-interactive - Service principal / application
+
  * Using a secret key
  * Using a certificate
 
