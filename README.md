@@ -1,3 +1,9 @@
+---
+services: data-lake-store,data-lake-analytics
+platforms: dotnet
+author: matt1883
+---
+
 # Authenticating your application against Azure Active Directory
 
 ## Overview
