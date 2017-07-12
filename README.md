@@ -4,7 +4,7 @@ platforms: dotnet
 author: matt1883
 ---
 
-# Authenticating your application against Azure Active Directory
+# Azure Data Lake authentication options for .NET
 
 ## Overview
 When building an application that uses the .NET SDK for Data Lake Analytics (ADLA), you need to pick how your application will sign in to Azure Active Directory (AAD). 
