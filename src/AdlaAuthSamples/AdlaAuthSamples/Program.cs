@@ -36,18 +36,22 @@ namespace AdlaAuthSamples
             tokenCache.BeforeAccess = BeforeTokenCacheAccess;
             tokenCache.AfterAccess = AfterTokenCacheAccess;
 
+            // INTERACTIVE WITHOUT CACHE
             var armCreds = GetCredsInteractivePopup(domain, armTokenAudience, PromptBehavior.Always);
             var adlCreds = GetCredsInteractivePopup(domain, adlTokenAudience, PromptBehavior.Always);
             var aadCreds = GetCredsInteractivePopup(domain, aadTokenAudience, PromptBehavior.Always);
 
+            // INTERACTIVE WITH CACHE
             //var armCreds = GetCredsInteractivePopup(domain, armTokenAudience, tokenCache, PromptBehavior.Always);
             //var adlCreds = GetCredsInteractivePopup(domain, adlTokenAudience, tokenCache, PromptBehavior.Always);
             //var aadCreds = GetCredsInteractivePopup(domain, aadTokenAudience, tokenCache, PromptBehavior.Always);
 
+            // NON-INTERACTIVE WITH SECRET KEY
             //var armCreds = GetCredsServicePrincipalSecretKey(domain, armTokenAudience, clientId, secretKey);
             //var adlCreds = GetCredsServicePrincipalSecretKey(domain, adlTokenAudience, clientId, secretKey);
             //var aadCreds = GetCredsServicePrincipalSecretKey(domain, aadTokenAudience, clientId, secretKey);
 
+            // NON-INTERACTIVE WITH CERT
             //var armCreds = GetCredsServicePrincipalCertificate(domain, armTokenAudience, clientId, certificate);
             //var adlCreds = GetCredsServicePrincipalCertificate(domain, adlTokenAudience, clientId, certificate);
             //var aadCreds = GetCredsServicePrincipalCertificate(domain, aadTokenAudience, clientId, certificate);
