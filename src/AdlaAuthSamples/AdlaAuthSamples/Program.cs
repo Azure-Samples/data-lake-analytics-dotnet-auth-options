@@ -7,10 +7,9 @@ using Microsoft.Rest;
 using Microsoft.Rest.Azure.Authentication;
 using Microsoft.IdentityModel.Clients.ActiveDirectory;
 using Microsoft.Azure.Management.DataLake.Analytics;
-using Microsoft.Azure.Management.DataLake.Analytics.Models;
 using Microsoft.Azure.Management.DataLake.Store;
-using Microsoft.Azure.Management.DataLake.Store.Models;
 using Microsoft.Azure.Graph.RBAC;
+
 
 namespace AdlaAuthSamples
 {
@@ -25,47 +24,47 @@ namespace AdlaAuthSamples
             string subscriptionId = "<subscription ID>";
 
             string domain = "<AAD tenant ID / domain>";
-            Uri armTokenAudience = new Uri(@"https://management.core.windows.net/");
-            Uri adlTokenAudience = new Uri(@"https://datalake.azure.net/");
-            Uri aadTokenAudience = new Uri(@"https://graph.windows.net/");
+            var armTokenAudience = new Uri(@"https://management.core.windows.net/");
+            var adlTokenAudience = new Uri(@"https://datalake.azure.net/");
+            var aadTokenAudience = new Uri(@"https://graph.windows.net/");
 
             string clientId = "<service principal / application client ID>";
             string secretKey = "<service principal / application secret key>";
-            X509Certificate2 certificate = new X509Certificate2(@"<path to (PFX) certificate file>", "<certificate password>");
+            var certificate = new X509Certificate2(@"<path to (PFX) certificate file>", "<certificate password>");
 
-            TokenCache tokenCache = new TokenCache();
+            var tokenCache = new TokenCache();
             tokenCache.BeforeAccess = BeforeTokenCacheAccess;
             tokenCache.AfterAccess = AfterTokenCacheAccess;
 
-            ServiceClientCredentials armCreds = GetCredsInteractivePopup(domain, armTokenAudience, PromptBehavior.Always);
-            ServiceClientCredentials adlCreds = GetCredsInteractivePopup(domain, adlTokenAudience, PromptBehavior.Always);
-            ServiceClientCredentials aadCreds = GetCredsInteractivePopup(domain, aadTokenAudience, PromptBehavior.Always);
+            var armCreds = GetCredsInteractivePopup(domain, armTokenAudience, PromptBehavior.Always);
+            var adlCreds = GetCredsInteractivePopup(domain, adlTokenAudience, PromptBehavior.Always);
+            var aadCreds = GetCredsInteractivePopup(domain, aadTokenAudience, PromptBehavior.Always);
 
-            //ServiceClientCredentials armCreds = GetCredsInteractivePopup(domain, armTokenAudience, tokenCache, PromptBehavior.Always);
-            //ServiceClientCredentials adlCreds = GetCredsInteractivePopup(domain, adlTokenAudience, tokenCache, PromptBehavior.Always);
-            //ServiceClientCredentials aadCreds = GetCredsInteractivePopup(domain, aadTokenAudience, tokenCache, PromptBehavior.Always);
+            //var armCreds = GetCredsInteractivePopup(domain, armTokenAudience, tokenCache, PromptBehavior.Always);
+            //var adlCreds = GetCredsInteractivePopup(domain, adlTokenAudience, tokenCache, PromptBehavior.Always);
+            //var aadCreds = GetCredsInteractivePopup(domain, aadTokenAudience, tokenCache, PromptBehavior.Always);
 
-            //ServiceClientCredentials armCreds = GetCredsServicePrincipalSecretKey(domain, armTokenAudience, clientId, secretKey);
-            //ServiceClientCredentials adlCreds = GetCredsServicePrincipalSecretKey(domain, adlTokenAudience, clientId, secretKey);
-            //ServiceClientCredentials aadCreds = GetCredsServicePrincipalSecretKey(domain, aadTokenAudience, clientId, secretKey);
+            //var armCreds = GetCredsServicePrincipalSecretKey(domain, armTokenAudience, clientId, secretKey);
+            //var adlCreds = GetCredsServicePrincipalSecretKey(domain, adlTokenAudience, clientId, secretKey);
+            //var aadCreds = GetCredsServicePrincipalSecretKey(domain, aadTokenAudience, clientId, secretKey);
 
-            //ServiceClientCredentials armCreds = GetCredsServicePrincipalCertificate(domain, armTokenAudience, clientId, certificate);
-            //ServiceClientCredentials adlCreds = GetCredsServicePrincipalCertificate(domain, adlTokenAudience, clientId, certificate);
-            //ServiceClientCredentials aadCreds = GetCredsServicePrincipalCertificate(domain, aadTokenAudience, clientId, certificate);
+            //var armCreds = GetCredsServicePrincipalCertificate(domain, armTokenAudience, clientId, certificate);
+            //var adlCreds = GetCredsServicePrincipalCertificate(domain, adlTokenAudience, clientId, certificate);
+            //var aadCreds = GetCredsServicePrincipalCertificate(domain, aadTokenAudience, clientId, certificate);
 
-            DataLakeAnalyticsAccountManagementClient adlaAccountClient = new DataLakeAnalyticsAccountManagementClient(armCreds);
+            var adlaAccountClient = new DataLakeAnalyticsAccountManagementClient(armCreds);
             adlaAccountClient.SubscriptionId = subscriptionId;
-            DataLakeStoreAccountManagementClient adlsAccountClient = new DataLakeStoreAccountManagementClient(armCreds);
+            var adlsAccountClient = new DataLakeStoreAccountManagementClient(armCreds);
             adlsAccountClient.SubscriptionId = subscriptionId;
 
-            DataLakeAnalyticsCatalogManagementClient adlaCatalogClient = new DataLakeAnalyticsCatalogManagementClient(adlCreds);
-            DataLakeAnalyticsJobManagementClient adlaJobClient = new DataLakeAnalyticsJobManagementClient(adlCreds);
-            DataLakeStoreFileSystemManagementClient adlsFileSystemClient = new DataLakeStoreFileSystemManagementClient(adlCreds);
+            var adlaCatalogClient = new DataLakeAnalyticsCatalogManagementClient(adlCreds);
+            var adlaJobClient = new DataLakeAnalyticsJobManagementClient(adlCreds);
+            var adlsFileSystemClient = new DataLakeStoreFileSystemManagementClient(adlCreds);
 
-            GraphRbacManagementClient graphClient = new GraphRbacManagementClient(aadCreds);
+            var graphClient = new GraphRbacManagementClient(aadCreds);
             graphClient.TenantID = domain;
 
-            DataLakeAnalyticsAccount account = adlaAccountClient.Account.Get(resourceGroupName, adlaAccountName);
+            var account = adlaAccountClient.Account.Get(resourceGroupName, adlaAccountName);
             Console.WriteLine($"My account's location is: {account.Location}!");
 
             // string upn = "tim@contoso.com";
@@ -83,17 +82,17 @@ namespace AdlaAuthSamples
         {
             SynchronizationContext.SetSynchronizationContext(new SynchronizationContext());
 
-            ActiveDirectoryClientSettings clientSettings = new ActiveDirectoryClientSettings
+            var clientSettings = new ActiveDirectoryClientSettings
             {
                 ClientId = "1950a258-227b-4e31-a9cf-717495945fc2",
                 ClientRedirectUri = new Uri("urn:ietf:wg:oauth:2.0:oob"),
                 PromptBehavior = promptBehavior
             };
 
-            ActiveDirectoryServiceSettings serviceSettings = ActiveDirectoryServiceSettings.Azure;
+            var serviceSettings = ActiveDirectoryServiceSettings.Azure;
             serviceSettings.TokenAudience = tokenAudience;
 
-            ServiceClientCredentials creds = UserTokenProvider.LoginWithPromptAsync(domain, clientSettings, serviceSettings).GetAwaiter().GetResult();
+            var creds = UserTokenProvider.LoginWithPromptAsync(domain, clientSettings, serviceSettings).GetAwaiter().GetResult();
 
             return creds;
         }
@@ -106,17 +105,17 @@ namespace AdlaAuthSamples
         {
             SynchronizationContext.SetSynchronizationContext(new SynchronizationContext());
 
-            ActiveDirectoryClientSettings clientSettings = new ActiveDirectoryClientSettings
+            var clientSettings = new ActiveDirectoryClientSettings
             {
                 ClientId = "1950a258-227b-4e31-a9cf-717495945fc2",
                 ClientRedirectUri = new Uri("urn:ietf:wg:oauth:2.0:oob"),
                 PromptBehavior = promptBehavior
             };
 
-            ActiveDirectoryServiceSettings serviceSettings = ActiveDirectoryServiceSettings.Azure;
+            var serviceSettings = ActiveDirectoryServiceSettings.Azure;
             serviceSettings.TokenAudience = tokenAudience;
 
-            ServiceClientCredentials creds = UserTokenProvider.LoginWithPromptAsync(domain, clientSettings, serviceSettings, tokenCache).GetAwaiter().GetResult();
+            var creds = UserTokenProvider.LoginWithPromptAsync(domain, clientSettings, serviceSettings, tokenCache).GetAwaiter().GetResult();
 
             return creds;
         }
@@ -129,7 +128,9 @@ namespace AdlaAuthSamples
             string tokenCachePath = @"<path to token cache file>";
 
             if (File.Exists(tokenCachePath))
+            {
                 args.TokenCache.Deserialize(File.ReadAllBytes(tokenCachePath));
+            }
         }
 
         private static void AfterTokenCacheAccess(TokenCacheNotificationArgs args)
