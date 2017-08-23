@@ -37,14 +37,14 @@ namespace AdlaAuthSamples
             tokenCache.AfterAccess = AfterTokenCacheAccess;
 
             // INTERACTIVE WITHOUT CACHE
-            var armCreds = GetCredsInteractivePopup(domain, armTokenAudience, PromptBehavior.Always);
-            var adlCreds = GetCredsInteractivePopup(domain, adlTokenAudience, PromptBehavior.Always);
-            var aadCreds = GetCredsInteractivePopup(domain, aadTokenAudience, PromptBehavior.Always);
+            var armCreds = GetCredsInteractivePopup(domain, armTokenAudience, PromptBehavior.Auto);
+            var adlCreds = GetCredsInteractivePopup(domain, adlTokenAudience, PromptBehavior.Auto);
+            var aadCreds = GetCredsInteractivePopup(domain, aadTokenAudience, PromptBehavior.Auto);
 
             // INTERACTIVE WITH CACHE
-            //var armCreds = GetCredsInteractivePopup(domain, armTokenAudience, tokenCache, PromptBehavior.Always);
-            //var adlCreds = GetCredsInteractivePopup(domain, adlTokenAudience, tokenCache, PromptBehavior.Always);
-            //var aadCreds = GetCredsInteractivePopup(domain, aadTokenAudience, tokenCache, PromptBehavior.Always);
+            // var armCreds = GetCredsInteractivePopup(domain, armTokenAudience, tokenCache, PromptBehavior.Auto);
+            //var adlCreds = GetCredsInteractivePopup(domain, adlTokenAudience, tokenCache, PromptBehavior.Auto);
+            //var aadCreds = GetCredsInteractivePopup(domain, aadTokenAudience, tokenCache, PromptBehavior.Auto);
 
             // NON-INTERACTIVE WITH SECRET KEY
             //var armCreds = GetCredsServicePrincipalSecretKey(domain, armTokenAudience, clientId, secretKey);
@@ -129,8 +129,7 @@ namespace AdlaAuthSamples
             // NOTE: We recommend that you do NOT store the token cache in plain text -- don't use the code below as-is.
             //       Here's one example of a way to store the token cache in a slightly more secure way, using Data Protection APIs:
             //         http://www.cloudidentity.com/blog/2014/07/09/the-new-token-cache-in-adal-v2/
-            string tokenCachePath = @"<path to token cache file>";
-
+            string tokenCachePath = GetTokenCachePath();
             if (File.Exists(tokenCachePath))
             {
                 args.TokenCache.Deserialize(File.ReadAllBytes(tokenCachePath));
@@ -142,9 +141,18 @@ namespace AdlaAuthSamples
             // NOTE: We recommend that you do NOT store the token cache in plain text -- don't use the code below as-is.
             //       Here's one example of a way to store the token cache in a slightly more secure way, using Data Protection APIs:
             //         http://www.cloudidentity.com/blog/2014/07/09/the-new-token-cache-in-adal-v2/
-            string tokenCachePath = @"<path to token cache file>";
-
+            string tokenCachePath = GetTokenCachePath();
             File.WriteAllBytes(tokenCachePath, args.TokenCache.Serialize());
+        }
+
+        private static string GetTokenCachePath()
+        {
+            // Pick any filesytem path you want for the token cache
+
+            string folder = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+            string filename = nameof(AdlaAuthSamples) + ".tockencache";
+            string tokenCachePath = System.IO.Path.Combine(folder, filename);
+            return tokenCachePath;
         }
 
         /*
