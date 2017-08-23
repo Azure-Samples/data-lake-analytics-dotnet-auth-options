@@ -9,6 +9,7 @@ using Microsoft.IdentityModel.Clients.ActiveDirectory;
 using Microsoft.Azure.Management.DataLake.Analytics;
 using Microsoft.Azure.Management.DataLake.Store;
 using Microsoft.Azure.Graph.RBAC;
+using Microsoft.Azure.Management.DataLake.Analytics.Models;
 
 
 namespace AdlaAuthSamples
@@ -19,42 +20,25 @@ namespace AdlaAuthSamples
     {
         static void Main(string[] args)
         {
-            string adlaAccountName = "<ADLA account name>";
-            string resourceGroupName = "<resource group name>";
-            string subscriptionId = "<subscription ID>";
+            string adlaAccountName = "adlclientqa";
+            string resourceGroupName = "adlclienttest";
+            string subscriptionId = "ace74b35-b0de-428b-a1d9-55459d7a6e30";
 
-            string domain = "<AAD tenant ID / domain>";
+            string domain = "microsoft.onmicrosoft.com";
             var armTokenAudience = new Uri(@"https://management.core.windows.net/");
             var adlTokenAudience = new Uri(@"https://datalake.azure.net/");
             var aadTokenAudience = new Uri(@"https://graph.windows.net/");
 
-            string clientId = "<service principal / application client ID>";
-            string secretKey = "<service principal / application secret key>";
-            var certificate = new X509Certificate2(@"<path to (PFX) certificate file>", "<certificate password>");
+            string clientId = "1950a258-227b-4e31-a9cf-717495945fc2";
 
             var tokenCache = new TokenCache();
             tokenCache.BeforeAccess = BeforeTokenCacheAccess;
             tokenCache.AfterAccess = AfterTokenCacheAccess;
 
-            // INTERACTIVE WITHOUT CACHE
-            var armCreds = GetCredsInteractivePopup(domain, armTokenAudience, PromptBehavior.Always);
-            var adlCreds = GetCredsInteractivePopup(domain, adlTokenAudience, PromptBehavior.Always);
-            var aadCreds = GetCredsInteractivePopup(domain, aadTokenAudience, PromptBehavior.Always);
+            var armCreds = GetCredsInteractivePopup(domain, armTokenAudience, tokenCache, PromptBehavior.Auto);
+            var adlCreds = GetCredsInteractivePopup(domain, adlTokenAudience, tokenCache, PromptBehavior.Auto);
+            var aadCreds = GetCredsInteractivePopup(domain, aadTokenAudience, tokenCache, PromptBehavior.Auto);
 
-            // INTERACTIVE WITH CACHE
-            //var armCreds = GetCredsInteractivePopup(domain, armTokenAudience, tokenCache, PromptBehavior.Always);
-            //var adlCreds = GetCredsInteractivePopup(domain, adlTokenAudience, tokenCache, PromptBehavior.Always);
-            //var aadCreds = GetCredsInteractivePopup(domain, aadTokenAudience, tokenCache, PromptBehavior.Always);
-
-            // NON-INTERACTIVE WITH SECRET KEY
-            //var armCreds = GetCredsServicePrincipalSecretKey(domain, armTokenAudience, clientId, secretKey);
-            //var adlCreds = GetCredsServicePrincipalSecretKey(domain, adlTokenAudience, clientId, secretKey);
-            //var aadCreds = GetCredsServicePrincipalSecretKey(domain, aadTokenAudience, clientId, secretKey);
-
-            // NON-INTERACTIVE WITH CERT
-            //var armCreds = GetCredsServicePrincipalCertificate(domain, armTokenAudience, clientId, certificate);
-            //var adlCreds = GetCredsServicePrincipalCertificate(domain, adlTokenAudience, clientId, certificate);
-            //var aadCreds = GetCredsServicePrincipalCertificate(domain, aadTokenAudience, clientId, certificate);
 
             var adlaAccountClient = new DataLakeAnalyticsAccountManagementClient(armCreds);
             adlaAccountClient.SubscriptionId = subscriptionId;
@@ -74,6 +58,17 @@ namespace AdlaAuthSamples
             // string upn = "tim@contoso.com";
             // string displayName = graphClient.Users.Get(upn).DisplayName;
             // Console.WriteLine($"The display name for {upn} is {displayName}!");
+
+            // OLD SDK
+            var jobid = System.Guid.NewGuid();
+            var ji = new Microsoft.Azure.Management.DataLake.Analytics.Models.JobInformation();
+            ji.DegreeOfParallelism = 1;
+            ji.Name = "testJob";
+            ji.Properties = new USqlJobProperties();
+            ji.Type = JobType.USql;
+            ji.Properties.Script = "FOO";
+
+            adlaJobClient.Job.Create(adlaAccountName, jobid, ji);
 
             Console.ReadLine();
         }
@@ -129,7 +124,7 @@ namespace AdlaAuthSamples
             // NOTE: We recommend that you do NOT store the token cache in plain text -- don't use the code below as-is.
             //       Here's one example of a way to store the token cache in a slightly more secure way, using Data Protection APIs:
             //         http://www.cloudidentity.com/blog/2014/07/09/the-new-token-cache-in-adal-v2/
-            string tokenCachePath = @"<path to token cache file>";
+            string tokenCachePath = @"d:\tokencache.cache";
 
             if (File.Exists(tokenCachePath))
             {
@@ -142,7 +137,7 @@ namespace AdlaAuthSamples
             // NOTE: We recommend that you do NOT store the token cache in plain text -- don't use the code below as-is.
             //       Here's one example of a way to store the token cache in a slightly more secure way, using Data Protection APIs:
             //         http://www.cloudidentity.com/blog/2014/07/09/the-new-token-cache-in-adal-v2/
-            string tokenCachePath = @"<path to token cache file>";
+            string tokenCachePath = @"d:\tokencache.cache";
 
             File.WriteAllBytes(tokenCachePath, args.TokenCache.Serialize());
         }
