@@ -148,9 +148,11 @@ namespace AdlaAuthSamples
         private static string GetTokenCachePath()
         {
             // Pick any filesytem path you want for the token cache
+            // The code below contructs a path location that is in 
+            // the current user's local app data folder
 
             string folder = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-            string filename = nameof(AdlaAuthSamples) + ".tockencache";
+            string filename = nameof(AdlaAuthSamples) + ".tokencache";
             string tokenCachePath = System.IO.Path.Combine(folder, filename);
             return tokenCachePath;
         }
