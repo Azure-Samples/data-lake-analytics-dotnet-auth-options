@@ -59,12 +59,20 @@ namespace AdlaAuthSamples
             // string displayName = graphClient.Users.Get(upn).DisplayName;
             // Console.WriteLine($"The display name for {upn} is {displayName}!");
 
-            // OLD SDK
             var jobid = System.Guid.NewGuid();
-            var ji = new Microsoft.Azure.Management.DataLake.Analytics.Models.JobInformation();
+
+            // NEW SDK
+            // var ji = new Microsoft.Azure.Management.DataLake.Analytics.Models.JobInformation();
+            // ji.DegreeOfParallelism = 1;
+            // ji.Name = "testJob";
+            // ji.Properties = new USqlJobProperties();
+            // ji.Type = JobType.USql;
+            // ji.Properties.Script = "FOO";
+
+            var ji = new Microsoft.Azure.Management.DataLake.Analytics.Models.CreateJobParameters();
             ji.DegreeOfParallelism = 1;
             ji.Name = "testJob";
-            ji.Properties = new USqlJobProperties();
+            ji.Properties = new CreateJobProperties();
             ji.Type = JobType.USql;
             ji.Properties.Script = "FOO";
 
