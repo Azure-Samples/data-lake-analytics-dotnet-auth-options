@@ -28,36 +28,44 @@ namespace AdlaAuthSamples
             var adlTokenAudience = new Uri(@"https://datalake.azure.net/");
             var aadTokenAudience = new Uri(@"https://graph.windows.net/");
 
-            string clientId = "<service principal / application client ID>";
-            string secretKey = "<service principal / application secret key>";
-            var certificate = new X509Certificate2(@"<path to (PFX) certificate file>", "<certificate password>");
+            // ----------------------------------------
+            // Perform authentication to get credentials
+            // ----------------------------------------
 
+            // INTERACTIVE WITH CACHE
             var tokenCache = new TokenCache();
             tokenCache.BeforeAccess = BeforeTokenCacheAccess;
             tokenCache.AfterAccess = AfterTokenCacheAccess;
+            var armCreds = GetCredsInteractivePopup(domain, armTokenAudience, tokenCache, PromptBehavior.Auto);
+            var adlCreds = GetCredsInteractivePopup(domain, adlTokenAudience, tokenCache, PromptBehavior.Auto);
+            var aadCreds = GetCredsInteractivePopup(domain, aadTokenAudience, tokenCache, PromptBehavior.Auto);
 
             // INTERACTIVE WITHOUT CACHE
-            var armCreds = GetCredsInteractivePopup(domain, armTokenAudience, PromptBehavior.Auto);
-            var adlCreds = GetCredsInteractivePopup(domain, adlTokenAudience, PromptBehavior.Auto);
-            var aadCreds = GetCredsInteractivePopup(domain, aadTokenAudience, PromptBehavior.Auto);
-
-            // INTERACTIVE WITH CACHE
-            // var armCreds = GetCredsInteractivePopup(domain, armTokenAudience, tokenCache, PromptBehavior.Auto);
-            //var adlCreds = GetCredsInteractivePopup(domain, adlTokenAudience, tokenCache, PromptBehavior.Auto);
-            //var aadCreds = GetCredsInteractivePopup(domain, aadTokenAudience, tokenCache, PromptBehavior.Auto);
+            // var armCreds = GetCredsInteractivePopup(domain, armTokenAudience, PromptBehavior.Auto);
+            // var adlCreds = GetCredsInteractivePopup(domain, adlTokenAudience, PromptBehavior.Auto);
+            // var aadCreds = GetCredsInteractivePopup(domain, aadTokenAudience, PromptBehavior.Auto);
 
             // NON-INTERACTIVE WITH SECRET KEY
-            //var armCreds = GetCredsServicePrincipalSecretKey(domain, armTokenAudience, clientId, secretKey);
-            //var adlCreds = GetCredsServicePrincipalSecretKey(domain, adlTokenAudience, clientId, secretKey);
-            //var aadCreds = GetCredsServicePrincipalSecretKey(domain, aadTokenAudience, clientId, secretKey);
+            // string clientId = "<service principal / application client ID>";
+            // string secretKey = "<service principal / application secret key>";
+            // var armCreds = GetCredsServicePrincipalSecretKey(domain, armTokenAudience, clientId, secretKey);
+            // var adlCreds = GetCredsServicePrincipalSecretKey(domain, adlTokenAudience, clientId, secretKey);
+            // var aadCreds = GetCredsServicePrincipalSecretKey(domain, aadTokenAudience, clientId, secretKey);
 
             // NON-INTERACTIVE WITH CERT
-            //var armCreds = GetCredsServicePrincipalCertificate(domain, armTokenAudience, clientId, certificate);
-            //var adlCreds = GetCredsServicePrincipalCertificate(domain, adlTokenAudience, clientId, certificate);
-            //var aadCreds = GetCredsServicePrincipalCertificate(domain, aadTokenAudience, clientId, certificate);
+            // string clientId = "<service principal / application client ID>";
+            // var certificate = new X509Certificate2(@"<path to (PFX) certificate file>", "<certificate password>");
+            // var armCreds = GetCredsServicePrincipalCertificate(domain, armTokenAudience, clientId, certificate);
+            // var adlCreds = GetCredsServicePrincipalCertificate(domain, adlTokenAudience, clientId, certificate);
+            // var aadCreds = GetCredsServicePrincipalCertificate(domain, aadTokenAudience, clientId, certificate);
+
+            // ----------------------------------------
+            // Create the REST clients using the credentials
+            // ----------------------------------------
 
             var adlaAccountClient = new DataLakeAnalyticsAccountManagementClient(armCreds);
             adlaAccountClient.SubscriptionId = subscriptionId;
+
             var adlsAccountClient = new DataLakeStoreAccountManagementClient(armCreds);
             adlsAccountClient.SubscriptionId = subscriptionId;
 
@@ -67,6 +75,10 @@ namespace AdlaAuthSamples
 
             var graphClient = new GraphRbacManagementClient(aadCreds);
             graphClient.TenantID = domain;
+
+            // ----------------------------------------
+            // Perform operations with the REST clients
+            // ----------------------------------------
 
             var account = adlaAccountClient.Account.Get(resourceGroupName, adlaAccountName);
             Console.WriteLine($"My account's location is: {account.Location}!");
@@ -78,6 +90,10 @@ namespace AdlaAuthSamples
             Console.ReadLine();
         }
 
+        // The interactive samples reuse Azure PowerShell's client ID
+        // For production code you should use your own client ids
+        private static string azure_powershell_clientid = "1950a258-227b-4e31-a9cf-717495945fc2";
+        
         /*
          *  Interactive: User popup
          *  (no token cache to reuse/save session state)
@@ -86,9 +102,12 @@ namespace AdlaAuthSamples
         {
             SynchronizationContext.SetSynchronizationContext(new SynchronizationContext());
 
+            // The client id comes from Azure PowerShell
+            // for production code you should use your own client id
+
             var clientSettings = new ActiveDirectoryClientSettings
             {
-                ClientId = "1950a258-227b-4e31-a9cf-717495945fc2",
+                ClientId = azure_powershell_clientid,
                 ClientRedirectUri = new Uri("urn:ietf:wg:oauth:2.0:oob"),
                 PromptBehavior = promptBehavior
             };
@@ -111,7 +130,7 @@ namespace AdlaAuthSamples
 
             var clientSettings = new ActiveDirectoryClientSettings
             {
-                ClientId = "1950a258-227b-4e31-a9cf-717495945fc2",
+                ClientId = azure_powershell_clientid,
                 ClientRedirectUri = new Uri("urn:ietf:wg:oauth:2.0:oob"),
                 PromptBehavior = promptBehavior
             };
