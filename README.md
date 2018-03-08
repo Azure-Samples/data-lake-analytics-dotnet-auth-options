@@ -12,7 +12,7 @@ When building an application that uses the .NET SDK for Data Lake Analytics (ADL
 There are two fundamental ways to have your application sign-in:
 
 * **Interactive** - Use this method when your application has a user directly using your application and your app needs to perform operations in the context of that user.
-* **Non-interactive** - Thus this method when your application is not meant to interact with ADLA as a specific user. This is useful for long-running services.
+* **Non-interactive** - Use this method when your application is not meant to interact with ADLA as a specific user. This is useful for long-running services.
 
 ## Required NuGet packages
 
